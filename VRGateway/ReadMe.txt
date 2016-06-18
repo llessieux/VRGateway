@@ -10,3 +10,9 @@ VLC VR: (-vlc_vr with optional -vlc_stereo_vr option)
 Display the screen of VLC in VR.
 With the stereo option it will show a side by side 3D Movie in 3D in VR :)
 
+Inspired from 
+https://github.com/JamesBear/directx11_hellovr
+
+And using the Windows Desktop Duplication API.
+Requires Windows 8.1 min.
+64 bit release only compiling.
