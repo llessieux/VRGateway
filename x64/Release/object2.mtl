@@ -1,0 +1,13 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl 16_-_Default
+Ns 94.117647
+Ka 1.000000 1.000000 1.000000
+Kd 0.545882 0.461176 0.382745
+Ks 0.449020 0.449020 0.449020
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd OLD3.JPG

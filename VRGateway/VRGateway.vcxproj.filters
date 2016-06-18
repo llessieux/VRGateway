@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="TaikoModels">
+      <UniqueIdentifier>{996c008d-9a16-41f7-ab01-a89333e5f1a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modelclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="colorshaderclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrices.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Vectors.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cameraclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="textureclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="openvr.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="debugwindowclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="rendertextureclass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenClass.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DesktopGrabber.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseVRApp.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TaikoVRApp.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VLCVRApp.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VRGateway.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="modelclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="colorshaderclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrices.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="cameraclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="textureclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="rendertextureclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="debugwindowclass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenClass.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="DesktopGrabber.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseVRApp.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="TaikoVRApp.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="VLCVRApp.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="VRGateway.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="VRGateway.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="..\Taiko\old3.jpg">
+      <Filter>TaikoModels</Filter>
+    </Image>
+    <Image Include="..\Taiko\walnut.jpg">
+      <Filter>TaikoModels</Filter>
+    </Image>
+    <Image Include="..\Taiko\Wood0001.jpg">
+      <Filter>TaikoModels</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="texture.vs">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="texture.ps">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="..\Taiko\object0.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object1.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object2.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object3.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object4.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object5.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object6.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object7.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object8.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object9.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object10.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object11.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object12.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object13.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object14.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object15.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\object16.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\taiko.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+    <None Include="..\Taiko\taiko_stick.mtl">
+      <Filter>TaikoModels</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VRGateway.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\Taiko\object0.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object1.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object2.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object3.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object4.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object5.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object6.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object7.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object8.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object9.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object10.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object11.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object12.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object13.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object14.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object15.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\object16.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\taiko.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+    <Object Include="..\Taiko\taiko_stick.obj">
+      <Filter>TaikoModels</Filter>
+    </Object>
+  </ItemGroup>
+</Project>

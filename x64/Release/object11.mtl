@@ -1,0 +1,12 @@
+# Blender MTL File: 'interim.blend'
+# Material Count: 1
+
+newmtl chrome_go
+Ns 94.117647
+Ka 1.000000 1.000000 1.000000
+Kd 0.276078 0.203922 0.050196
+Ks 0.039216 0.039216 0.039216
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

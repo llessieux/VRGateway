@@ -1,0 +1,755 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "stdafx.h"
+#include "modelclass.h"
+#include <string>
+
+bool ModelClass::ObjectMaterialProperties::Equals(const ModelClass::ObjectMaterialProperties &other)
+{
+    for (int i = 0; i<4; i++)
+    {
+        if (m_ambient_color[i] != other.m_ambient_color[i])
+            return false;
+        if (m_diffuse_color[i] != other.m_diffuse_color[i])
+            return false;
+        if (m_specular_color[i] != other.m_specular_color[i])
+            return false;
+    }
+    if (m_specular_exponent != other.m_specular_exponent)
+        return false;
+    if (m_texture != other.m_texture)
+        return false;
+
+    return true;
+}
+
+
+ModelClass::ModelClass()
+{
+	m_vertexBuffer = 0;
+	m_indexBuffer = 0;
+    m_scale_x = 1.0f;
+	m_Texture = 0;
+}
+
+
+ModelClass::ModelClass(const ModelClass& other)
+{
+}
+
+
+ModelClass::~ModelClass()
+{
+}
+
+
+bool
+ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat)
+{
+    FILE *f = NULL;
+    char directory[256];
+    memset(directory, 0, 256);
+    const char *last_slash = strrchr(filename, '\\');
+    int size = 0;
+    if (last_slash == nullptr)
+    {
+        memcpy(directory, ".\\", 3);
+    }
+    else
+    {
+        size = (int)(last_slash - filename);
+        if (size < 0)
+        {
+            last_slash = strrchr(filename, '/');
+            if (last_slash != nullptr)
+            {
+                size = (int)(last_slash - filename);
+                if (size < 0)
+                {
+                    memcpy(directory, ".\\", 3);
+                    size = 0;
+                }
+            }
+        }
+    }
+    if (size != 0)
+        memcpy(directory, filename, size + 1);
+
+    errno_t err = fopen_s(&f, filename, "r");
+    if (err != 0)
+        return false;
+
+    if (f)
+    {
+        char buffer[1024];
+        std::vector<D3DXVECTOR3> vertices;
+        std::vector<D3DXVECTOR3> normals;
+        std::vector<D3DXVECTOR2> texcoords;
+        //std::vector<unsigned int> colors;
+        vertices.reserve(1024);
+        normals.reserve(1024);
+        //colors.reserve(1024);
+        texcoords.reserve(1024);
+
+        indices.reserve(4096);
+        std::vector<ObjectMaterialProperties> subObjects;
+
+        unsigned int current_index = 0;
+        while (!feof(f))
+        {
+            fgets(buffer, 1024, f);
+
+            char *context;
+            char *buffer_ptr = strtok_s(buffer, " \t\r\n", &context);
+
+            if (buffer_ptr)
+            {
+                switch (buffer_ptr[0])
+                {
+                case 'm':
+                {
+                    if (strncmp(buffer_ptr, "mtllib", 6) == 0)
+                    {
+                        buffer_ptr = strtok_s(NULL, " \r\n", &context);
+
+                        LoadMaterialLibs(directory, buffer_ptr, libs);
+                    }
+                    break;
+                }
+                case 'u':
+                {
+                    if (strncmp(buffer_ptr, "usemtl", 6) == 0)
+                    {
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+
+                        std::string mat_name(buffer_ptr);
+                        std::vector<StoredMaterial>::iterator it = libs.begin();
+                        while (it != libs.end())
+                        {
+                            if (it->name == mat_name)
+                            {
+                                ObjectMaterialProperties mat;
+
+                                mat = it->mat;
+                                if (mat.m_specular_exponent == 0.0)
+                                    mat.m_specular_exponent = 80.0f;
+
+                                subObjects.push_back(mat);
+                                break;
+                            }
+                            it++;
+                        }
+                    }
+                    break;
+                }
+                case 'g':
+                {
+                    if (strncmp(buffer_ptr, "g", 1) == 0)
+                    {
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                        ObjectMaterialProperties mat;
+
+                        if (!libs.empty())
+                        {
+                            mat = libs.back().mat;
+                            if (mat.m_specular_exponent == 0.0)
+                                mat.m_specular_exponent = 80.0f;
+
+                        }
+                        subObjects.push_back(mat);
+                    }
+                    break;
+                }
+                case 'v':
+                    if ((buffer_ptr[1] != 't') &&
+                        (buffer_ptr[1] != 'c') &&
+                        (buffer_ptr[1] != 'n'))
+                    {
+                        float flt[3];
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                        for (int i = 0; i<3; i++)
+                        {
+                            if (buffer_ptr == NULL)
+                            {
+                                break;
+                            }
+                            flt[i] = (float)atof(buffer_ptr);
+                            buffer_ptr = strtok_s(NULL, " ", &context);
+                        }
+
+                        vertices.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
+                    }
+                    else if (buffer[1] == 'n')
+                    {
+                        float flt[3];
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                        for (int i = 0; i<3; i++)
+                        {
+                            if (buffer_ptr == NULL)
+                            {
+                                break;
+                            }
+                            flt[i] = (float)atof(buffer_ptr);
+                            buffer_ptr = strtok_s(NULL, " ", &context);
+                        }
+                        normals.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
+                    }
+                    /*else if (buffer[1] == 'c')
+                    {
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                        unsigned int color;
+                        sscanf(buffer_ptr, "%X", &color);
+                        colors.push_back(color);
+                    }*/
+                    else if (buffer[1] == 't')
+                    {
+                        float texture[2];
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                        for (int i = 0; i<2; i++)
+                        {
+                            if (buffer_ptr == NULL)
+                            {
+                                break;
+                            }
+                            texture[i] = (float)atof(buffer_ptr);
+                            buffer_ptr = strtok_s(NULL, " ", &context);
+                        }
+                        texcoords.push_back(D3DXVECTOR2(texture[0], texture[1]));
+                    }
+                    break;
+                    break;
+
+                case 'f':
+                {
+                    int v[4];
+                    buffer_ptr = strtok_s(NULL, " ", &context);
+                    int ok = 0;
+                    for (int i = 0; i<4; i++)
+                    {
+                        if (buffer_ptr == NULL)
+                        {
+                            break;
+                        }
+                        v[i] = atoi(buffer_ptr);
+                        if (v[i] != 0)
+                            ok++;
+                        buffer_ptr = strtok_s(NULL, " ", &context);
+                    }
+
+                    //-1 because the OBJ format starts at 1...
+                    if (ok == 3)
+                    {
+                        indices.push_back(v[0] - 1);
+                        indices.push_back(v[2] - 1);
+                        indices.push_back(v[1] - 1);
+                        current_index += 3;
+                    }
+                    else if (ok == 4) //Deal with the quad
+                    {
+                        indices.push_back(v[0] - 1);
+                        indices.push_back(v[2] - 1);
+                        indices.push_back(v[1] - 1);
+                        indices.push_back(v[0] - 1);
+                        indices.push_back(v[3] - 1);
+                        indices.push_back(v[2] - 1);
+                        current_index += 6;
+                    }
+                }
+                break;
+                default:
+                    break;
+                }
+            }
+        }
+
+        fclose(f);
+
+        if (indices.size() != 0 && vertices.size() != 0)
+        {
+            if (normals.size() == 0)
+            {
+                if (vertices.size() != normals.size())
+                {
+                    //We do not allow vertices with different normals per triangle.
+                    //So just go over all triangle and average the normals
+                    normals.resize(vertices.size());
+                    memset(&normals[0], 0, sizeof(D3DXVECTOR3)*vertices.size());
+
+                    for (int t = 0; t<indices.size(); t += 3)
+                    {
+                        int i0 = indices[t];
+                        int i1 = indices[t + 1];
+                        int i2 = indices[t + 2];
+
+                        D3DXVECTOR3 dx = vertices[i1] - vertices[i0];
+                        D3DXVECTOR3 dy = vertices[i2] - vertices[i0];
+
+                        D3DXVECTOR3 normal = dx.cross(dy).normalize();
+
+                        normals[i0] += normal;
+                        normals[i1] += normal;
+                        normals[i2] += normal;
+                    }
+
+                    for (int n = 0; n<normals.size(); n++)
+                    {
+                        //3dmodel code should handle 0,0,0 normals as NaN or null. TODO mabo - check it does?
+                        normals[n] = normals[n].normalize();
+                    }
+                }
+            }
+            for (auto i = 0; i < vertices.size(); i++)
+            {
+                auto &vertex = vertices[i];
+                auto &normal = normals[i];
+
+                Vector4 v4(vertex.x, vertex.y, vertex.z,1);
+                v4 = mat * v4;
+                D3DXVECTOR3 v(v4.x,v4.y,v4.z);
+                D3DXVECTOR3 n = mat * normal;
+                n = n.normalize();
+
+                D3DXVECTOR2 textCooord(0, 0);
+                if (texcoords.size() != 0)
+                {
+                    textCooord = texcoords[i];
+                }
+
+                AddVertex(v.x, v.y, v.z, textCooord.x, textCooord.y, final_vertices, n); //Front
+            }
+        }
+    }
+
+    return true;
+}
+
+
+void ModelClass::LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs)
+{
+    FILE *f = NULL;
+    char fullname[256];
+    sprintf_s(fullname, 256, "%s%s", directory, filename);
+    errno_t err = fopen_s(&f, fullname, "r");
+    char buffer[256];
+    bool new_mat = false;
+    StoredMaterial stm;
+    char *context;
+    char *buffer_ptr;
+
+    if (err == 0)
+    {
+        while (!feof(f))
+        {
+            fgets(buffer, 256, f);
+
+            buffer_ptr = strtok_s(buffer, " \t\r\n", &context);
+
+            if (buffer_ptr == NULL)
+                continue;
+
+            if (strncmp(buffer_ptr, "newmtl", 6) == 0)
+            {
+                if (new_mat)
+                    libs.push_back(stm);
+
+                stm.name.clear();
+                stm = StoredMaterial();
+
+                buffer_ptr = strtok_s(NULL, " ", &context);
+                new_mat = true;
+                stm.name = std::string(buffer_ptr);
+            }
+            else if (strncmp(buffer_ptr, "Ka", 2) == 0)
+            {
+                float r, g, b;
+                sscanf_s(buffer_ptr + 3, "%f %f %f", &r, &g, &b);
+                stm.mat.m_ambient_color[3] = b;
+                stm.mat.m_ambient_color[2] = g;
+                stm.mat.m_ambient_color[1] = r;
+                stm.mat.m_ambient_color[0] = 0;
+            }
+            else if (strncmp(buffer_ptr, "Kd", 2) == 0)
+            {
+                float r, g, b;
+                sscanf_s(buffer_ptr + 3, "%f %f %f", &r, &g, &b);
+                stm.mat.m_diffuse_color[3] = b;
+                stm.mat.m_diffuse_color[2] = g;
+                stm.mat.m_diffuse_color[1] = r;
+                stm.mat.m_diffuse_color[0] = 0;
+            }
+            else if (strncmp(buffer_ptr, "Ks", 2) == 0)
+            {
+                float sr, sg, sb;
+                sscanf_s(buffer_ptr + 3, "%f %f %f", &sr, &sg, &sb);
+                stm.mat.m_specular_color[3] = sb;
+                stm.mat.m_specular_color[2] = sg;
+                stm.mat.m_specular_color[1] = sr;
+                stm.mat.m_specular_color[0] = 0;
+            }
+            else if (strncmp(buffer_ptr, "Ns", 2) == 0)
+            {
+                float exp = (float)atof(buffer_ptr + 3);
+                stm.mat.m_specular_exponent = exp;
+            }
+            else if (strncmp(buffer_ptr, "map_Kd", 6) == 0)
+            {
+                stm.mat.m_texture = std::string(buffer_ptr + 7);
+                for (auto &c : stm.mat.m_texture)
+                {
+                    if (c == 0xD)
+                        c = 0;
+                    else if (c == 0xA)
+                        c = 0;
+                }
+            }
+            /*else if (strncmp(buffer_ptr, "d ", 2) == 0)
+            {
+                float opacity;
+                sscanf_s(buffer_ptr + 2, "%f", &opacity);
+                stm.mat.m_opacity = opacity;
+            }*/
+        }
+        if (new_mat)
+            libs.push_back(stm);
+
+        //stm.name = NULL;
+
+        fclose(f);
+    }
+}
+
+bool ModelClass::InitializeFromWavefrontFile(ID3D11Device* device, const char *filename, const Matrix4 &mat, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback)
+{
+    std::vector<VertexType> vertices;
+    std::vector<StoredMaterial> libs;
+    std::vector<unsigned long> indices;
+    if (!LoadFromWavefrontFile(filename, vertices, indices,libs,mat))
+        return false;
+    /*if (libs.size() != 1)
+        return false;*/
+
+    if (!libs[0].mat.m_texture.empty())
+    {
+        // Load the texture for this model.
+        bool result = LoadTexture(device, libs[0].mat.m_texture.c_str());
+        if (!result)
+        {
+            return false;
+        }
+    }
+
+    callback(vertices, indices);
+    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+    D3D11_SUBRESOURCE_DATA vertexData, indexData;
+    HRESULT result;
+
+    // Set up the description of the static vertex buffer.
+    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufferDesc.ByteWidth = (UINT)(sizeof(VertexType) * vertices.size());
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = 0;
+    vertexBufferDesc.MiscFlags = 0;
+    vertexBufferDesc.StructureByteStride = 0;
+
+    // Give the subresource structure a pointer to the vertex data.
+    vertexData.pSysMem = &vertices[0];
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    // Now create the vertex buffer.
+    result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+    if (FAILED(result))
+    {
+        return false;
+    }
+
+    // Set up the description of the static index buffer.
+    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.ByteWidth = (UINT)(sizeof(unsigned long) * indices.size());
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = 0;
+    indexBufferDesc.MiscFlags = 0;
+    indexBufferDesc.StructureByteStride = 0;
+
+    // Give the subresource structure a pointer to the index data.
+    indexData.pSysMem = &indices[0];
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    // Create the index buffer.
+    result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+    if (FAILED(result))
+    {
+        return false;
+    }
+
+    m_vertexCount = (int)vertices.size();
+    m_indexCount = (int)indices.size();
+
+    return true;
+}
+
+bool ModelClass::Initialize(ID3D11Device* device, WCHAR* textureFilename)
+{
+	bool result;
+
+
+	// Initialize the vertex and index buffers.
+	result = InitializeBuffers(device);
+	if(!result)
+	{
+		return false;
+	}
+
+	// Load the texture for this model.
+	result = LoadTexture(device, textureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ModelClass::Shutdown()
+{
+	// Release the model texture.
+	ReleaseTexture();
+
+	// Shutdown the vertex and index buffers.
+	ShutdownBuffers();
+
+	return;
+}
+
+
+void ModelClass::Render(ID3D11DeviceContext* deviceContext)
+{
+	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	RenderBuffers(deviceContext);
+
+	return;
+}
+
+
+int ModelClass::GetIndexCount()
+{
+	return m_indexCount;
+}
+
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+    if (m_Texture)
+	    return m_Texture->GetTexture();
+    return nullptr;
+}
+
+void ModelClass::AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal)
+{
+	VertexType temp;
+	temp.position.set(x, y, z);
+	temp.texture.set(tx, ty);
+	temp.normal = normal;
+	vertdata.push_back(temp);
+}
+
+
+void ModelClass::AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
+{
+	// Matrix4 mat( outermat.data() );
+    float depth = 0.01f;
+	Vector4 A = mat * Vector4(-0.5f, 0, 0, 1);
+	Vector4 B = mat * Vector4(0.5f* m_scale_x, 0, 0, 1);
+	Vector4 C = mat * Vector4(0.5f* m_scale_x, 1, 0, 1);
+	Vector4 D = mat * Vector4(-0.5f, 1, 0, 1);
+	Vector4 E = mat * Vector4(-0.5f, 0, depth, 1);
+	Vector4 F = mat * Vector4(0.5f* m_scale_x, 0, depth, 1);
+	Vector4 G = mat * Vector4(0.5f* m_scale_x, 1, depth, 1);
+	Vector4 H = mat * Vector4(-0.5f, 1, depth, 1);
+
+	int old_vertex_index = (int)vertdata.size();
+	// triangles instead of quads
+	D3DXVECTOR3 normal;
+	normal.set(0, 0, -1);
+	AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal); //Front
+	AddVertex(F.x, F.y, F.z, 1, 1, vertdata, normal);
+	AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
+	AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
+	AddVertex(H.x, H.y, H.z, 0, 0, vertdata, normal);
+	AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal);
+
+	normal.set(0, 0, 1);
+	AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal); //Back
+	AddVertex(A.x, A.y, A.z, 1, 1, vertdata, normal);
+	AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
+	AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
+	AddVertex(C.x, C.y, C.z, 0, 0, vertdata, normal);
+	AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal);
+
+	normal.set(0, 1, 0);
+	AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal); //Top
+	AddVertex(G.x, G.y, G.z, 1, 1, vertdata, normal);
+	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+	AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
+	AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal);
+
+	normal.set(0, -1, 0);
+	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Bottom
+	AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
+	AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
+	AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
+	AddVertex(E.x, E.y, E.z, 0, 0, vertdata, normal);
+	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
+
+	normal.set(-1, 0, 0);
+	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Left
+	AddVertex(E.x, E.y, E.z, 1, 1, vertdata, normal);
+	AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
+	AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
+	AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
+	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
+
+	normal.set(1, 0, 0);
+	AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal); //Right
+	AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
+	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+	AddVertex(G.x, G.y, G.z, 0, 0, vertdata, normal);
+	AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal);
+
+	int new_vertex_index = (int)vertdata.size();
+
+	for (int i = old_vertex_index; i < new_vertex_index; i++)
+	{
+		indices.push_back(i);
+	}
+}
+
+
+bool ModelClass::InitializeBuffers(ID3D11Device* device)
+{
+    std::vector<VertexType> vertices;
+    std::vector<unsigned long> indices;
+    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+    D3D11_SUBRESOURCE_DATA vertexData, indexData;
+    HRESULT result;
+
+    float m_fScale = 8.0f; // 0.6f;
+    Matrix4 matScale;
+    matScale.scale(m_fScale, m_fScale, m_fScale);
+    Matrix4 matTransform;
+    matTransform.translate(0,0,-3.0f);
+
+    Matrix4 mat = matScale * matTransform;
+
+
+	AddCubeToScene(mat, vertices, indices);
+
+	for (int i = 0; i < vertices.size() / 2; i++)
+	{
+		std::swap(vertices[i], vertices[vertices.size() - i - 1]);
+	}
+	// Set up the description of the static vertex buffer.
+    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufferDesc.ByteWidth = (UINT)(sizeof(VertexType) * vertices.size());
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = 0;
+    vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// Give the subresource structure a pointer to the vertex data.
+    vertexData.pSysMem = &vertices[0];
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	// Now create the vertex buffer.
+    result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Set up the description of the static index buffer.
+    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.ByteWidth = (UINT)(sizeof(unsigned long) * indices.size());
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = 0;
+    indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// Give the subresource structure a pointer to the index data.
+    indexData.pSysMem = &indices[0];
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// Create the index buffer.
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	m_vertexCount = (int)vertices.size();
+	m_indexCount = (int)indices.size();
+
+	return true;
+}
+
+
+void ModelClass::ShutdownBuffers()
+{
+	// Release the index buffer.
+	if(m_indexBuffer)
+	{
+		m_indexBuffer->Release();
+		m_indexBuffer = 0;
+	}
+
+	// Release the vertex buffer.
+	if(m_vertexBuffer)
+	{
+		m_vertexBuffer->Release();
+		m_vertexBuffer = 0;
+	}
+
+	return;
+}
+
+
+void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
+{
+	unsigned int stride;
+	unsigned int offset;
+
+
+	// Set vertex buffer stride and offset.
+	stride = sizeof(VertexType); 
+	offset = 0;
+    
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+
+    // Set the index buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return;
+}
+
+void ModelClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if (m_Texture)
+	{
+		m_Texture->Shutdown();
+		delete m_Texture;
+		m_Texture = nullptr;
+	}
+
+	return;
+}
+
