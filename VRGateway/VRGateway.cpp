@@ -143,6 +143,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, LPWSTR cmdLine)
            exit(0);
        }
    }
+   else
+       return FALSE;
+
    return TRUE;
 }
 //

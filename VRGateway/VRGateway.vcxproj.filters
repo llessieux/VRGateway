@@ -16,6 +16,9 @@
     <Filter Include="TaikoModels">
       <UniqueIdentifier>{996c008d-9a16-41f7-ab01-a89333e5f1a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PPSSPPPatch">
+      <UniqueIdentifier>{c432b0b3-c692-4c60-809c-754b10383a21}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -124,6 +127,9 @@
     </ClCompile>
     <ClCompile Include="VRGateway.cpp">
       <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PPSSPPPatch\RawInput.cpp">
+      <Filter>PPSSPPPatch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
