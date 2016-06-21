@@ -86,8 +86,8 @@ bool VLCVRApp::renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMA
     obj->Render(m_pImmediateContext);
     // Render the model using the color shader.
 
-    D3DXMATRIX world = m_position_matrix * m_scale_matrix * worldMatrix;
-    result = m_ColorShader->Render(m_pImmediateContext, obj->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, obj->GetTexture());
+    D3DXMATRIX world = worldMatrix * m_scale_matrix * m_position_matrix;
+    result = m_ColorShader->Render(m_pImmediateContext, obj->GetIndexCount(), world, viewMatrix, projectionMatrix, obj->GetTexture());
     if (!result)
     {
         return false;
@@ -106,13 +106,13 @@ bool VLCVRApp::setupWorld()
 
     float sx = (float)rect_width / (float)rect_height;
 
-    Vector3 screen_position(0, -0.1f, -6.0f);
+    Vector3 screen_position(0, -0.1f, -2.0f);
 
     float input_scale = m_stereo_input ? 0.5f : 1.0f;
 
     m_left_screen.reset(new Screen);
 
-    m_left_screen->SetScreenSize(6.0f);
+    m_left_screen->SetScreenSize(2.0f);
     m_left_screen->SetScreenPosition(screen_position);
     // Initialize the model object.
     bool result = m_left_screen->Initialize(m_pDevice, sx, input_scale,0.0f);
