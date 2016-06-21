@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: modelclass.cpp
+// Filename: Model.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "modelclass.h"
+#include "Model.h"
 #include <string>
 
-bool ModelClass::ObjectMaterialProperties::Equals(const ModelClass::ObjectMaterialProperties &other)
+bool Model::ObjectMaterialProperties::Equals(const Model::ObjectMaterialProperties &other)
 {
     for (int i = 0; i<4; i++)
     {
@@ -25,7 +25,7 @@ bool ModelClass::ObjectMaterialProperties::Equals(const ModelClass::ObjectMateri
 }
 
 
-ModelClass::ModelClass()
+Model::Model()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
@@ -34,18 +34,18 @@ ModelClass::ModelClass()
 }
 
 
-ModelClass::ModelClass(const ModelClass& other)
+Model::Model(const Model& other)
 {
 }
 
 
-ModelClass::~ModelClass()
+Model::~Model()
 {
 }
 
 
 bool
-ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat)
+Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat)
 {
     FILE *f = NULL;
     char directory[256];
@@ -83,15 +83,20 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
     if (f)
     {
         char buffer[1024];
+        std::vector<D3DXVECTOR3> wvertices;
+        std::vector<D3DXVECTOR3> wnormals;
+        std::vector<D3DXVECTOR2> wtexcoords;
         std::vector<D3DXVECTOR3> vertices;
         std::vector<D3DXVECTOR3> normals;
         std::vector<D3DXVECTOR2> texcoords;
         //std::vector<unsigned int> colors;
         vertices.reserve(1024);
-        normals.reserve(1024);
+        wvertices.reserve(1024);
+        wnormals.reserve(1024);
         //colors.reserve(1024);
-        texcoords.reserve(1024);
-
+        wtexcoords.reserve(1024);
+        std::vector<std::tuple<int, int, int>> witems;
+        witems.reserve(4096);
         indices.reserve(4096);
         std::vector<ObjectMaterialProperties> subObjects;
 
@@ -178,7 +183,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                             buffer_ptr = strtok_s(NULL, " ", &context);
                         }
 
-                        vertices.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
+                        wvertices.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
                     }
                     else if (buffer[1] == 'n')
                     {
@@ -193,7 +198,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                             flt[i] = (float)atof(buffer_ptr);
                             buffer_ptr = strtok_s(NULL, " ", &context);
                         }
-                        normals.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
+                        wnormals.push_back(D3DXVECTOR3(flt[0], flt[1], flt[2]));
                     }
                     /*else if (buffer[1] == 'c')
                     {
@@ -215,7 +220,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                             texture[i] = (float)atof(buffer_ptr);
                             buffer_ptr = strtok_s(NULL, " ", &context);
                         }
-                        texcoords.push_back(D3DXVECTOR2(texture[0], texture[1]));
+                        wtexcoords.push_back(D3DXVECTOR2(texture[0], texture[1]));
                     }
                     break;
                     break;
@@ -223,6 +228,8 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                 case 'f':
                 {
                     int v[4];
+                    int n[4];
+                    int t[4];
                     buffer_ptr = strtok_s(NULL, " ", &context);
                     int ok = 0;
                     for (int i = 0; i<4; i++)
@@ -232,27 +239,57 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                             break;
                         }
                         v[i] = atoi(buffer_ptr);
+                        t[i] = 0;
+                        n[i] = 0;
+
+                        char *slash = strchr(buffer_ptr, '/');
+                        if (slash)
+                        {
+                            if (slash[1] != '/')
+                                t[i] = atoi(slash + 1);
+                            slash = strchr(slash + 1,'/');
+                            if (slash)
+                                n[i] = atoi(slash + 1);
+                        }
                         if (v[i] != 0)
                             ok++;
                         buffer_ptr = strtok_s(NULL, " ", &context);
                     }
 
+                    auto store_vertex = [&](int v, int t, int n) {
+                        auto wv = std::make_tuple(v, t, n);
+                        auto it = std::find(witems.begin(), witems.end(), wv );
+                        if (it == witems.end())
+                        {
+                            indices.push_back((unsigned long)witems.size());
+                            vertices.push_back(wvertices[v]);
+                            if (wnormals.size()!=0)
+                                normals.push_back(wnormals[n]);
+                            if (wtexcoords.size() != 0)
+                                texcoords.push_back(wtexcoords[t]);
+                            witems.push_back(wv);
+                        }
+                        else
+                        {
+                            indices.push_back((unsigned long)(it - witems.begin()));
+                        }
+                    };
                     //-1 because the OBJ format starts at 1...
                     if (ok == 3)
                     {
-                        indices.push_back(v[0] - 1);
-                        indices.push_back(v[2] - 1);
-                        indices.push_back(v[1] - 1);
+                        store_vertex(v[0] - 1, t[0] - 1, n[0] - 1);
+                        store_vertex(v[2] - 1, t[2] - 1, n[2] - 1);
+                        store_vertex(v[1] - 1, t[1] - 1, n[1] - 1);
                         current_index += 3;
                     }
                     else if (ok == 4) //Deal with the quad
                     {
-                        indices.push_back(v[0] - 1);
-                        indices.push_back(v[2] - 1);
-                        indices.push_back(v[1] - 1);
-                        indices.push_back(v[0] - 1);
-                        indices.push_back(v[3] - 1);
-                        indices.push_back(v[2] - 1);
+                        store_vertex(v[0] - 1, t[0] - 1, n[0] - 1);
+                        store_vertex(v[2] - 1, t[2] - 1, n[2] - 1);
+                        store_vertex(v[1] - 1, t[1] - 1, n[1] - 1);
+                        store_vertex(v[0] - 1, t[0] - 1, n[0] - 1);
+                        store_vertex(v[3] - 1, t[3] - 1, n[3] - 1);
+                        store_vertex(v[2] - 1, t[2] - 1, n[2] - 1);
                         current_index += 6;
                     }
                 }
@@ -299,6 +336,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                     }
                 }
             }
+            bool store_texture = (texcoords.size() == vertices.size());
             for (auto i = 0; i < vertices.size(); i++)
             {
                 auto &vertex = vertices[i];
@@ -311,7 +349,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
                 n = n.normalize();
 
                 D3DXVECTOR2 textCooord(0, 0);
-                if (texcoords.size() != 0)
+                if (store_texture)
                 {
                     textCooord = texcoords[i];
                 }
@@ -325,7 +363,7 @@ ModelClass::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> 
 }
 
 
-void ModelClass::LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs)
+void Model::LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs)
 {
     FILE *f = NULL;
     char fullname[256];
@@ -419,7 +457,7 @@ void ModelClass::LoadMaterialLibs(char *directory, char *filename, std::vector<S
     }
 }
 
-bool ModelClass::InitializeFromWavefrontFile(ID3D11Device* device, const char *filename, const Matrix4 &mat, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback)
+bool Model::InitializeFromWavefrontFile(ID3D11Device* device, const char *filename, const Matrix4 &mat, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback)
 {
     std::vector<VertexType> vertices;
     std::vector<StoredMaterial> libs;
@@ -490,7 +528,7 @@ bool ModelClass::InitializeFromWavefrontFile(ID3D11Device* device, const char *f
     return true;
 }
 
-bool ModelClass::Initialize(ID3D11Device* device, WCHAR* textureFilename)
+bool Model::Initialize(ID3D11Device* device, WCHAR* textureFilename)
 {
 	bool result;
 
@@ -512,7 +550,7 @@ bool ModelClass::Initialize(ID3D11Device* device, WCHAR* textureFilename)
 	return true;
 }
 
-void ModelClass::Shutdown()
+void Model::Shutdown()
 {
 	// Release the model texture.
 	ReleaseTexture();
@@ -524,7 +562,7 @@ void ModelClass::Shutdown()
 }
 
 
-void ModelClass::Render(ID3D11DeviceContext* deviceContext)
+void Model::Render(ID3D11DeviceContext* deviceContext)
 {
 	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	RenderBuffers(deviceContext);
@@ -533,19 +571,19 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 }
 
 
-int ModelClass::GetIndexCount()
+int Model::GetIndexCount()
 {
 	return m_indexCount;
 }
 
-ID3D11ShaderResourceView* ModelClass::GetTexture()
+ID3D11ShaderResourceView* Model::GetTexture()
 {
     if (m_Texture)
 	    return m_Texture->GetTexture();
     return nullptr;
 }
 
-void ModelClass::AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal)
+void Model::AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal)
 {
 	VertexType temp;
 	temp.position.set(x, y, z);
@@ -555,7 +593,7 @@ void ModelClass::AddVertex(float x, float y, float z, float tx, float ty, std::v
 }
 
 
-void ModelClass::AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
+void Model::AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
 {
 	// Matrix4 mat( outermat.data() );
     float depth = 0.01f;
@@ -628,7 +666,7 @@ void ModelClass::AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, 
 }
 
 
-bool ModelClass::InitializeBuffers(ID3D11Device* device)
+bool Model::InitializeBuffers(ID3D11Device* device)
 {
     std::vector<VertexType> vertices;
     std::vector<unsigned long> indices;
@@ -636,14 +674,11 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
     D3D11_SUBRESOURCE_DATA vertexData, indexData;
     HRESULT result;
 
-    float m_fScale = 8.0f; // 0.6f;
+    float fScale = 0.05f;
     Matrix4 matScale;
-    matScale.scale(m_fScale, m_fScale, m_fScale);
-    Matrix4 matTransform;
-    matTransform.translate(0,0,-3.0f);
+    matScale.scale(fScale, fScale, fScale);
 
-    Matrix4 mat = matScale * matTransform;
-
+    Matrix4 mat = matScale;
 
 	AddCubeToScene(mat, vertices, indices);
 
@@ -698,7 +733,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 }
 
 
-void ModelClass::ShutdownBuffers()
+void Model::ShutdownBuffers()
 {
 	// Release the index buffer.
 	if(m_indexBuffer)
@@ -718,7 +753,7 @@ void ModelClass::ShutdownBuffers()
 }
 
 
-void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
@@ -740,7 +775,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	return;
 }
 
-void ModelClass::ReleaseTexture()
+void Model::ReleaseTexture()
 {
 	// Release the texture object.
 	if (m_Texture)

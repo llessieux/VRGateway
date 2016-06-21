@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: modelclass.h
+// Filename: Model.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _MODELCLASS_H_
-#define _MODELCLASS_H_
+#ifndef _Model_H_
+#define _Model_H_
 
 
 //////////////
@@ -15,12 +15,12 @@
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
-#include "textureclass.h"
+#include "Texture.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: ModelClass
+// Class name: Model
 ////////////////////////////////////////////////////////////////////////////////
-class ModelClass
+class Model
 {
 public:
 	struct VertexType
@@ -73,9 +73,9 @@ public:
     };
 
 public:
-	ModelClass();
-	ModelClass(const ModelClass&);
-	~ModelClass();
+	Model();
+	Model(const Model&);
+	~Model();
 
 	bool Initialize(ID3D11Device*, WCHAR*);
     bool InitializeFromWavefrontFile(ID3D11Device*, const char*, const Matrix4 &, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback);
@@ -86,8 +86,10 @@ public:
 
 	ID3D11ShaderResourceView* GetTexture();
 
+    bool InitializeBuffers(ID3D11Device*);
+
 protected:
-	bool InitializeBuffers(ID3D11Device*);
+	
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
 
@@ -100,10 +102,10 @@ protected:
     void LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs);
 
     template<typename T>
-    bool ModelClass::LoadTexture(ID3D11Device* device, T* filename)
+    bool Model::LoadTexture(ID3D11Device* device, T* filename)
     {
         // Create the texture object.
-        m_Texture = new TextureClass;
+        m_Texture = new Texture;
         if (!m_Texture) { return false; }
 
         // Initialize the texture object.
@@ -116,7 +118,7 @@ protected:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	int m_vertexCount, m_indexCount;
 
-	TextureClass* m_Texture;
+	Texture* m_Texture;
     float m_scale_x;
 };
 

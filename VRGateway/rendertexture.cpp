@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: rendertextureclass.cpp
+// Filename: renderTexture.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "rendertextureclass.h"
+#include "renderTexture.h"
 
 
-RenderTextureClass::RenderTextureClass()
+RenderTexture::RenderTexture()
 {
 	m_renderTargetTexture = 0;
 	m_renderTargetView = 0;
@@ -13,17 +13,17 @@ RenderTextureClass::RenderTextureClass()
 }
 
 
-RenderTextureClass::RenderTextureClass(const RenderTextureClass& other)
+RenderTexture::RenderTexture(const RenderTexture& other)
 {
 }
 
 
-RenderTextureClass::~RenderTextureClass()
+RenderTexture::~RenderTexture()
 {
 }
 
 
-bool RenderTextureClass::Initialize(ID3D11Device* device, int textureWidth, int textureHeight)
+bool RenderTexture::Initialize(ID3D11Device* device, int textureWidth, int textureHeight)
 {
 	D3D11_TEXTURE2D_DESC textureDesc;
 	HRESULT result;
@@ -82,7 +82,7 @@ bool RenderTextureClass::Initialize(ID3D11Device* device, int textureWidth, int 
 }
 
 
-void RenderTextureClass::Shutdown()
+void RenderTexture::Shutdown()
 {
 	if(m_shaderResourceView)
 	{
@@ -106,7 +106,7 @@ void RenderTextureClass::Shutdown()
 }
 
 
-void RenderTextureClass::SetRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView)
+void RenderTexture::SetRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView)
 {
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	deviceContext->OMSetRenderTargets(1, &m_renderTargetView, depthStencilView);
@@ -115,7 +115,7 @@ void RenderTextureClass::SetRenderTarget(ID3D11DeviceContext* deviceContext, ID3
 }
 
 
-void RenderTextureClass::ClearRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, 
+void RenderTexture::ClearRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, 
 										   float red, float green, float blue, float alpha)
 {
 	float color[4];
@@ -137,13 +137,13 @@ void RenderTextureClass::ClearRenderTarget(ID3D11DeviceContext* deviceContext, I
 }
 
 
-ID3D11ShaderResourceView* RenderTextureClass::GetShaderResourceView()
+ID3D11ShaderResourceView* RenderTexture::GetShaderResourceView()
 {
 	return m_shaderResourceView;
 }
 
 
-ID3D11Texture2D* RenderTextureClass::GetTexture()
+ID3D11Texture2D* RenderTexture::GetTexture()
 {
 	return m_renderTargetTexture;
 }

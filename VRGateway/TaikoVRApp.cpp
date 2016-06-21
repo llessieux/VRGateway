@@ -1,9 +1,12 @@
 #include "stdafx.h"
 #include "TaikoVRApp.h"
-#include "modelclass.h"
-#include "colorshaderclass.h"
+#include "Model.h"
+#include "colorshader.h"
 
-TaikoVRApp::TaikoVRApp()
+//#define SHOW_STICK_END
+#pragma optimize ("", off)
+
+TaikoVRApp::TaikoVRApp() : m_enable_logging(false)
 {
     for (int i = 0; i < 2; i++)
         m_drumHitData.m_stick[i] = StickHitRegion::e_none;
@@ -14,45 +17,65 @@ TaikoVRApp::~TaikoVRApp()
 {
 }
 
-void TaikoVRApp::InternalClean()
+TaikoVRApp::StickHitRegion TaikoVRApp::CheckStickHit(const Vector3 &tip, const Vector3 &stick_origin)
 {
-}
-
-TaikoVRApp::StickHitRegion TaikoVRApp::CheckStickHit(const Vector3 &world_pos, const Vector3 &zDir)
-{
-    Vector3 tip = world_pos - zDir * m_drumHitData.m_stick_length;
+    char txt[256];
     Vector3 tip_in_plane = tip - m_drumHitData.m_center;
+    Vector3 dx(1, 0, 0);
+    Vector3 dy = m_drumHitData.m_normal.cross(dx).normalize();
     float depth = tip_in_plane.dot(m_drumHitData.m_normal);
-    float radius = tip_in_plane.length();
+    float lx = tip_in_plane.dot(dx);
+    float ly = tip_in_plane.dot(dy);
+    float radius = sqrt(lx*lx + ly*ly);; //2D Radius
+
+    if (m_enable_logging)
+    {
+        sprintf_s(txt, 256, "Center : %f %f %f\n", m_drumHitData.m_center.x, m_drumHitData.m_center.y, m_drumHitData.m_center.z);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Normal : %f %f %f\n", m_drumHitData.m_normal.x, m_drumHitData.m_normal.y, m_drumHitData.m_normal.z);
+        OutputDebugStringA(txt);
+
+        sprintf_s(txt, 256, "Controller Tip in plane : %f %f %f\n", tip_in_plane.x, tip_in_plane.y, tip_in_plane.z);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Depth : %f \n", depth);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Radius : %f \n", radius);
+        OutputDebugStringA(txt);
+    }
+    if ( depth < -m_drumHitData.m_stick_length)
+        return StickHitRegion::e_none;
+
+    if (depth > 0)
+        return StickHitRegion::e_none;
 
     if (radius < m_drumHitData.m_drum_inside_zone_radius && depth < 0)
     {
         if (tip_in_plane.x < 0)
         {
-            OutputDebugStringA("Hit Inside Left");
+            OutputDebugStringA("Hit Inside Left\n");
             return StickHitRegion::e_inside_left;
         }
         else
         {
-            OutputDebugStringA("Hit Inside Right");
+            OutputDebugStringA("Hit Inside Right\n");
             return StickHitRegion::e_inside_right;
         }
     }
 
     Vector3 contact;
-    if (linePlaneIntersection(contact, tip, world_pos, m_drumHitData.m_normal, m_drumHitData.m_center))
+    if (linePlaneIntersection(contact, tip, stick_origin, m_drumHitData.m_normal, m_drumHitData.m_center))
     {
         float r = contact.distance(m_drumHitData.m_center);
         if (r < (m_drumHitData.m_drum_max_radius + m_drumHitData.m_stick_radius) && r >(m_drumHitData.m_drum_inside_zone_radius - m_drumHitData.m_stick_radius))
         {
             if (tip_in_plane.x < 0)
             {
-                OutputDebugStringA("Hit Outside Left");
+                OutputDebugStringA("Hit Outside Left\n");
                 return StickHitRegion::e_outside_left;
             }
             else
             {
-                OutputDebugStringA("Hit Outside Right");
+                OutputDebugStringA("Hit Outside Right\n");
                 return StickHitRegion::e_outside_right;
             }
         }
@@ -63,6 +86,7 @@ TaikoVRApp::StickHitRegion TaikoVRApp::CheckStickHit(const Vector3 &world_pos, c
 
 void TaikoVRApp::HandleController()
 {
+    char txt[256];
     int controller = 0;
     for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
     {
@@ -75,23 +99,54 @@ void TaikoVRApp::HandleController()
         if (m_rTrackedDevicePose[unTrackedDevice].bPoseIsValid)
         {
             const Matrix4 & mat = m_rmat4DevicePose[unTrackedDevice];
-            Vector4 controller_origin(0, 0, 0, 1);
-            Vector4 world_pos = mat * controller_origin;
-            Vector3 zDir(0, 0, 1);
+            Vector4 origin(0, 0, 0, 1);
+            Vector4 world_pos = mat * origin;
+            Vector3 zDir(0, 0, -1);
+            Vector3 yDir(0, 1, 0);
             zDir = mat * zDir;
+            yDir = mat * yDir;
+
+            Vector3 tip;
+            tip = zDir * m_drumHitData.m_stick_length - yDir * m_drumHitData.m_stick_radius;
+            Matrix4 tr;
+            tr.translate(tip);
+            Matrix4 tipM = tr * mat;
+
+            Vector4 final_tip = tipM * origin;
+            Vector3 ftip(final_tip.x, final_tip.y, final_tip.z);
+
+            if (m_enable_logging)
+            {
+                sprintf_s(txt, 256, "Controller %d origin : %f %f %f\n", controller, world_pos.x, world_pos.y, world_pos.z);
+                OutputDebugStringA(txt);
+                sprintf_s(txt, 256, "Controller %d tip : %f %f %f\n", controller, ftip.x, ftip.y, ftip.z);
+                OutputDebugStringA(txt);
+            }
 
             std::string keys[5] = { "", "Down", "Triangle", "L", "R" };
 
             Vector3 wp(world_pos.x, world_pos.y, world_pos.z);
-            StickHitRegion hit = CheckStickHit(wp, zDir);
+            StickHitRegion hit = CheckStickHit(ftip, wp);
             if (hit == StickHitRegion::e_none && m_drumHitData.m_stick[controller] != StickHitRegion::e_none)
             {
+                if (m_enable_logging)
+                {
+                    OutputDebugStringA("Sending Key Up: ");
+                    OutputDebugStringA(keys[m_drumHitData.m_stick[controller]].c_str());
+                    OutputDebugStringA("\n");
+                }
                 SendKey(WM_KEYUP, m_button_to_key_map[keys[m_drumHitData.m_stick[controller]]]);
             }
             else if (hit != StickHitRegion::e_none && m_drumHitData.m_stick[controller] == StickHitRegion::e_none)
             {
+                if (m_enable_logging)
+                {
+                    OutputDebugStringA("Sending Key Down: ");
+                    OutputDebugStringA(keys[hit].c_str());
+                    OutputDebugStringA("\n");
+                }
                 SendKey(WM_KEYDOWN, m_button_to_key_map[keys[hit]]);
-                m_pHMD->TriggerHapticPulse(unTrackedDevice, 0, 50000);
+                m_pHMD->TriggerHapticPulse(unTrackedDevice, 0, 5000);
             }
             m_drumHitData.m_stick[controller] = hit;
         }
@@ -112,7 +167,7 @@ bool TaikoVRApp::linePlaneIntersection(Vector3 &contact, const Vector3 &pt1, con
     }
 
     // Compute the t value for the directed line ray intersecting the plane
-    float t = (d - plane_normal.dot(pt2)) / plane_normal.dot(ray);
+    float t = (d - plane_normal.dot(pt2)) / ray_d;
 
     // scale the ray by t
     Vector3 newRay = ray * t;
@@ -142,6 +197,38 @@ bool TaikoVRApp::renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DX
         }
     }
 
+#ifdef SHOW_STICK_END
+    Matrix4 trc;
+    trc.translate(m_drumHitData.m_center);
+    Matrix4 drumCenterM = trc * worldMatrix;
+
+    m_cube->Render(m_pImmediateContext);
+    result = m_ColorShader->Render(m_pImmediateContext, m_cube->GetIndexCount(), drumCenterM, viewMatrix, projectionMatrix, m_cube->GetTexture());
+    if (!m_errorshown && !result)
+    {
+        m_errorshown = true;
+        return false;
+        //MyDebug(_T("render failed"));
+    }
+
+    {
+        Vector3 centern;
+        centern = m_drumHitData.m_center + m_drumHitData.m_normal;
+        Matrix4 trn;
+        trn.translate(centern);
+        Matrix4 centerM = trn * worldMatrix;
+
+        m_cube->Render(m_pImmediateContext);
+        result = m_ColorShader->Render(m_pImmediateContext, m_cube->GetIndexCount(), centerM, viewMatrix, projectionMatrix, m_cube->GetTexture());
+        if (!m_errorshown && !result)
+        {
+            m_errorshown = true;
+            return false;
+            //MyDebug(_T("render failed"));
+        }
+    }
+#endif
+
     for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
     {
         if (!m_pHMD->IsTrackedDeviceConnected(unTrackedDevice))
@@ -166,6 +253,30 @@ bool TaikoVRApp::renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DX
             return false;
             //MyDebug(_T("render failed"));
         }
+
+#ifdef SHOW_STICK_END
+        Vector4 controller_origin(0, 0, 0, 1);
+        Vector4 world_pos = mat * controller_origin;
+        Vector3 zDir(0, 0, -1);
+        Vector3 yDir(0, 1, 0);
+        zDir = mat * zDir;
+        yDir = mat * yDir;
+
+        Vector3 tip;
+        tip = zDir * m_drumHitData.m_stick_length - yDir * m_drumHitData.m_stick_radius;
+        Matrix4 tr;
+        tr.translate(tip);
+        Matrix4 tipM = tr * mat;
+
+        m_cube->Render(m_pImmediateContext);
+        result = m_ColorShader->Render(m_pImmediateContext, m_cube->GetIndexCount(), tipM, viewMatrix, projectionMatrix, m_cube->GetTexture());
+        if (!m_errorshown && !result)
+        {
+            m_errorshown = true;
+            return false;
+            //MyDebug(_T("render failed"));
+        }
+#endif
     }
     return true;
 }
@@ -174,7 +285,7 @@ bool TaikoVRApp::renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DX
 bool TaikoVRApp::setupWorld()
 {
     // Create the model object.
-    //m_Model = new ModelClass;
+    //m_Model = new Model;
 
     char txt[256];
     Matrix4 drumMat;
@@ -183,17 +294,35 @@ bool TaikoVRApp::setupWorld()
     drumMat.rotateY(90.0f);
 
 
-    auto empty = [](const std::vector<ModelClass::VertexType> &vertices, const std::vector<unsigned long> &indices) {};
+    auto empty = [](const std::vector<Model::VertexType> &vertices, const std::vector<unsigned long> &indices) {};
 
 
-    auto SetupDrumHitRegion = [&](const std::vector<ModelClass::VertexType> &vertices, const std::vector<unsigned long> &indices) {
+    auto SetupDrumHitRegion = [&](const std::vector<Model::VertexType> &vertices, const std::vector<unsigned long> &indices) {
 
         if (vertices.size() == 0 || indices.size() == 0)
             return;
 
-        size_t center_index = vertices.size() - 1; //The last vertex is the center one.
-        D3DXVECTOR3 center = vertices[center_index].position;
-        D3DXVECTOR3 centerNormal = vertices[center_index].normal;
+        Vector3 barycenter(0, 0, 0);
+        for (auto &v : vertices)
+        {
+            barycenter += v.position;
+        }
+        barycenter *= (1.0f / (float)vertices.size());
+        float min_d = 10000000000.0f;
+        Vector3 center;
+        Vector3 centerNormal;
+        size_t center_index;
+        for (auto &v : vertices)
+        {
+            float d = v.position.distance(barycenter);
+            if (d < min_d)
+            {
+                min_d = d;
+                center = v.position;
+                centerNormal = v.normal;
+                center_index = ((char *)&v - (char *)&vertices[0]) / sizeof(Model::VertexType);
+            }
+        }
 
         D3DXVECTOR3 centerNoZ(center.x, center.y, 0);
         float drum_max_radius = 0.0f;
@@ -229,14 +358,23 @@ bool TaikoVRApp::setupWorld()
 
         m_drumHitData.m_center = center;
         m_drumHitData.m_normal = centerNormal.normalize();
-        m_drumHitData.m_drum_inside_zone_radius = drum_inside_zone_radius * 0.9f; //shrink it a bit
-        m_drumHitData.m_drum_max_radius = drum_max_radius;
+        m_drumHitData.m_drum_inside_zone_radius = drum_inside_zone_radius;
+        m_drumHitData.m_drum_max_radius = drum_max_radius * 0.8f; //Too much stuff around
+        char txt[256];
+        sprintf_s(txt, 256, "Center : %f %f %f\n", center.x, center.y, center.z);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Normal : %f %f %f\n", m_drumHitData.m_normal.x, m_drumHitData.m_normal.y, m_drumHitData.m_normal.z);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Inside Radius : %f\n", m_drumHitData.m_drum_inside_zone_radius);
+        OutputDebugStringA(txt);
+        sprintf_s(txt, 256, "Drum Radius : %f\n", m_drumHitData.m_drum_max_radius);
+        OutputDebugStringA(txt);
     };
 
     for (int i = 0; i < 17; i++)
     {
         sprintf_s(txt, 256, "object%d.obj", i);
-        ModelClass *obj = new ModelClass;
+        Model *obj = new Model;
         if (i == 2)
         {
             if (!obj->InitializeFromWavefrontFile(m_pDevice, txt, drumMat, SetupDrumHitRegion))
@@ -256,9 +394,9 @@ bool TaikoVRApp::setupWorld()
 
     Matrix4 drumStickMat;
     drumStickMat.rotateX(-90.0f);
-    drumStickMat.scale(0.08f);
+    drumStickMat.scale(0.04f);
 
-    auto StickSizeDetection = [&](const std::vector<ModelClass::VertexType> &vertices, const std::vector<unsigned long> &indices) {
+    auto StickSizeDetection = [&](const std::vector<Model::VertexType> &vertices, const std::vector<unsigned long> &indices) {
         D3DXVECTOR3 bboxMinPos, bboxMaxPos;
         if (vertices.size() == 0 || indices.size() == 0)
             return;
@@ -280,11 +418,48 @@ bool TaikoVRApp::setupWorld()
         m_drumHitData.m_stick_thickness = min(dz, min(dx, dy));
         m_drumHitData.m_stick_radius = m_drumHitData.m_stick_thickness / 2.0f;
         m_drumHitData.m_stick_length = max(dz, max(dx, dy));
+
+        char txt[256];
+        sprintf_s(txt, 256, "Stick thickness: %f  Radius : %f length :%f\n", m_drumHitData.m_stick_thickness, m_drumHitData.m_stick_radius, m_drumHitData.m_stick_length);
+        OutputDebugStringA(txt);
+
     };
 
 
-    m_drum_stick.reset(new ModelClass);
+    m_drum_stick.reset(new Model);
     m_drum_stick->InitializeFromWavefrontFile(m_pDevice, "taiko_stick.obj", drumStickMat, StickSizeDetection);
-
+#ifdef SHOW_STICK_END
+    m_cube.reset(new Model());
+    m_cube->InitializeBuffers(m_pDevice);
+#endif
     return true;
+}
+
+void TaikoVRApp::ProcessButton(int device, const vr::VRControllerState_t &state)
+{
+    vr::EVRButtonId buttons[6] = { vr::k_EButton_DPad_Left, vr::k_EButton_DPad_Up , vr::k_EButton_DPad_Right, vr::k_EButton_DPad_Down, vr::k_EButton_A, vr::k_EButton_ApplicationMenu };
+    if (device >= 2)
+        return;
+
+    FindKeyboard();
+
+    SetFocus(m_source_parent_window);
+
+    uint64_t pressed_buttons = ButtonsFromState(state);
+    for (int i = 0; i < 6; i++)
+    {
+        uint64_t mask = vr::ButtonMaskFromId(buttons[i]);
+        uint64_t current_button_state = pressed_buttons & mask;
+        uint64_t previous_button_state = m_prev_state[device] & mask;
+        if (current_button_state && !previous_button_state)
+        {
+            SendKey(WM_KEYDOWN, m_button_to_key_map[m_keys[device * 6 + i]]);
+        }
+        if (!current_button_state && previous_button_state)
+        {
+            SendKey(WM_KEYUP, m_button_to_key_map[m_keys[device * 6 + i]]);
+        }
+    }
+
+    m_prev_state[device] = pressed_buttons;
 }

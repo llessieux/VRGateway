@@ -33,34 +33,13 @@
     <ClInclude Include="Resource.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="modelclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="colorshaderclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="Matrices.h">
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="Vectors.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="cameraclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="textureclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="openvr.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="debugwindowclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="rendertextureclass.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenClass.h">
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="DesktopGrabber.h">
@@ -81,33 +60,33 @@
     <ClInclude Include="VRGateway.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="rendertexture.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Screen.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="colorshader.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="debugwindow.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="modelclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="colorshaderclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="Matrices.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="cameraclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="textureclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="rendertextureclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="debugwindowclass.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenClass.cpp">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="DesktopGrabber.cpp">
@@ -130,6 +109,27 @@
     </ClCompile>
     <ClCompile Include="..\PPSSPPPatch\RawInput.cpp">
       <Filter>PPSSPPPatch</Filter>
+    </ClCompile>
+    <ClCompile Include="rendertexture.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="colorshader.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="debugwindow.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Screen.cpp">
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

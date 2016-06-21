@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: debugwindowclass.h
+// Filename: debugwindow.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _DEBUGWINDOWCLASS_H_
-#define _DEBUGWINDOWCLASS_H_
+#ifndef _debugwindow_H_
+#define _debugwindow_H_
 
 
 //////////////
@@ -11,9 +11,9 @@
 #include "Vectors.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: DebugWindowClass
+// Class name: debugwindow
 ////////////////////////////////////////////////////////////////////////////////
-class DebugWindowClass
+class DebugWindow
 {
 private:
 	struct VertexType
@@ -23,9 +23,9 @@ private:
 	};
 
 public:
-	DebugWindowClass();
-	DebugWindowClass(const DebugWindowClass&);
-	~DebugWindowClass();
+	DebugWindow();
+	DebugWindow(const DebugWindow&);
+	~DebugWindow();
 
 	bool Initialize(ID3D11Device*, int, int, int, int);
 	void Shutdown();

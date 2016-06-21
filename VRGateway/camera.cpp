@@ -2,10 +2,10 @@
 // Filename: cameraclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "cameraclass.h"
+#include "camera.h"
 #include <DirectXMath.h>
 
-CameraClass::CameraClass()
+Camera::Camera()
 {
 	m_positionX = 0.0f;
 	m_positionY = 0.0f;
@@ -17,17 +17,17 @@ CameraClass::CameraClass()
 }
 
 
-CameraClass::CameraClass(const CameraClass& other)
+Camera::Camera(const Camera& other)
 {
 }
 
 
-CameraClass::~CameraClass()
+Camera::~Camera()
 {
 }
 
 
-void CameraClass::SetPosition(float x, float y, float z)
+void Camera::SetPosition(float x, float y, float z)
 {
 	m_positionX = x;
 	m_positionY = y;
@@ -36,7 +36,7 @@ void CameraClass::SetPosition(float x, float y, float z)
 }
 
 
-void CameraClass::SetRotation(float x, float y, float z)
+void Camera::SetRotation(float x, float y, float z)
 {
 	m_rotationX = x;
 	m_rotationY = y;
@@ -45,19 +45,19 @@ void CameraClass::SetRotation(float x, float y, float z)
 }
 
 
-D3DXVECTOR3 CameraClass::GetPosition()
+D3DXVECTOR3 Camera::GetPosition()
 {
 	return D3DXVECTOR3(m_positionX, m_positionY, m_positionZ);
 }
 
 
-D3DXVECTOR3 CameraClass::GetRotation()
+D3DXVECTOR3 Camera::GetRotation()
 {
 	return D3DXVECTOR3(m_rotationX, m_rotationY, m_rotationZ);
 }
 
 
-void CameraClass::Render()
+void Camera::Render()
 {
 	D3DXVECTOR3 up, position, lookAt;
 	float yaw, pitch, roll;
@@ -141,7 +141,7 @@ void CameraClass::Render()
 }
 
 
-void CameraClass::GetViewMatrix(D3DXMATRIX& viewMatrix)
+void Camera::GetViewMatrix(D3DXMATRIX& viewMatrix)
 {
 	viewMatrix = m_viewMatrix;
 	return;

@@ -1,37 +1,37 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: modelclass.cpp
+// Filename: Model.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "ScreenClass.h"
+#include "Screen.h"
 
 
-ScreenClass::ScreenClass()
+Screen::Screen()
 {
     m_screen_size = 8.0f;
     m_screen_position = Vector3(0, 0, -6.0f);
 }
 
 
-ScreenClass::ScreenClass(const ScreenClass& other)
+Screen::Screen(const Screen& other)
 {
 }
 
 
-ScreenClass::~ScreenClass()
+Screen::~Screen()
 {
 }
 
-void ScreenClass::SetScreenSize(float size)
+void Screen::SetScreenSize(float size)
 {
     m_screen_size = size;
 }
 
-void ScreenClass::SetScreenPosition(Vector3 screen_position)
+void Screen::SetScreenPosition(Vector3 screen_position)
 {
     m_screen_position = screen_position;
 }
 
-bool ScreenClass::Initialize(ID3D11Device* device, float scale_x, float texture_scale, float texture_offset)
+bool Screen::Initialize(ID3D11Device* device, float scale_x, float texture_scale, float texture_offset)
 {
 	bool result;
 
@@ -45,7 +45,7 @@ bool ScreenClass::Initialize(ID3D11Device* device, float scale_x, float texture_
 }
 
 
-void ScreenClass::AddScreenToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
+void Screen::AddScreenToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
 {
     // Matrix4 mat( outermat.data() );
     Vector4 A = mat * Vector4(-0.5f* m_scale_x, 0, 0, 1);
@@ -71,7 +71,7 @@ void ScreenClass::AddScreenToScene(Matrix4 mat, std::vector<VertexType> &vertdat
     indices.push_back(old_vertex_index + 1);
 }
 
-bool ScreenClass::InitializeBuffers(ID3D11Device* device)
+bool Screen::InitializeBuffers(ID3D11Device* device)
 {
     std::vector<VertexType> vertices;
     std::vector<unsigned long> indices;
@@ -135,7 +135,7 @@ bool ScreenClass::InitializeBuffers(ID3D11Device* device)
 	return true;
 }
 
-void ScreenClass::SetTexture(TextureClass *texture)
+void Screen::SetTexture(Texture *texture)
 {
     m_Texture = texture;
 }

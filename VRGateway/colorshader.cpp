@@ -2,12 +2,12 @@
 // Filename: colorshaderclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "colorshaderclass.h"
+#include "colorshader.h"
 #include "D3DCompiler.h"
 
 #pragma comment (lib, "d3dcompiler.lib")
 
-ColorShaderClass::ColorShaderClass()
+ColorShader::ColorShader()
 {
 	m_vertexShader = 0;
 	m_pixelShader = 0;
@@ -18,17 +18,17 @@ ColorShaderClass::ColorShaderClass()
 }
 
 
-ColorShaderClass::ColorShaderClass(const ColorShaderClass& other)
+ColorShader::ColorShader(const ColorShader& other)
 {
 }
 
 
-ColorShaderClass::~ColorShaderClass()
+ColorShader::~ColorShader()
 {
 }
 
 
-bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+bool ColorShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
@@ -45,7 +45,7 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void ColorShaderClass::Shutdown()
+void ColorShader::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -54,7 +54,7 @@ void ColorShaderClass::Shutdown()
 }
 
 
-bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
+bool ColorShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 							  D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	bool result;
@@ -74,7 +74,7 @@ bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 }
 
 
-bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -148,7 +148,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	}
 
 	// Create the vertex input layout description.
-	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
+	// This setup needs to match the VertexType stucture in the Model and in the shader.
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32_FLOAT;
@@ -174,7 +174,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	polygonLayout[2].InstanceDataStepRate = 0;
 
 		// Create the vertex input layout description.
-	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
+	// This setup needs to match the VertexType stucture in the Model and in the shader.
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -260,7 +260,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 }
 
 
-void ColorShaderClass::ShutdownShader()
+void ColorShader::ShutdownShader()
 {
 	// Release the sampler state.
 	if (m_sampleState)
@@ -300,7 +300,7 @@ void ColorShaderClass::ShutdownShader()
 	return;
 }
 
-void ColorShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void ColorShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -336,7 +336,7 @@ void ColorShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 
-bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+bool ColorShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 										   D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	HRESULT result;
@@ -380,7 +380,7 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D
 }
 
 
-void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void ColorShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);

@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "cameraclass.h"
-#include "modelclass.h"
-#include "ScreenClass.h"
-#include "colorshaderclass.h"
-#include "rendertextureclass.h"
-#include "debugwindowclass.h"
+#include "camera.h"
+#include "Model.h"
+#include "Screen.h"
+#include "colorshader.h"
+#include "renderTexture.h"
+#include "debugwindow.h"
 #include "DesktopGrabber.h"
 #include "TaikoVRApp.h"
 #include <map>
@@ -878,11 +878,11 @@ bool BaseVRApp::init(HWND hWnd)
         return false;
     }
 
-    m_source_texture.reset(new TextureClass());
+    m_source_texture.reset(new Texture());
     m_source_texture->SetTexture(ShaderResource);
 
     // Create the camera object.
-    m_CameraLeft.reset(new CameraClass);
+    m_CameraLeft.reset(new Camera);
     if (!m_CameraLeft)
     {
         return false;
@@ -892,7 +892,7 @@ bool BaseVRApp::init(HWND hWnd)
     m_CameraLeft->SetPosition(0.0f, 0.0f, -10.0f);
 
     // Create the camera object.
-    m_CameraRight.reset(new CameraClass);
+    m_CameraRight.reset(new Camera);
     if (!m_CameraRight)
     {
         return false;
@@ -906,7 +906,7 @@ bool BaseVRApp::init(HWND hWnd)
 
     if (NeedScreen())
     {
-        m_Screen.reset(new ScreenClass);
+        m_Screen.reset(new Screen);
 
         int rect_width = PsPrect.right - PsPrect.left + 1;
         int rect_height = PsPrect.bottom - PsPrect.top + 1;
@@ -923,7 +923,7 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Create the color shader object.
-    m_ColorShader.reset(new ColorShaderClass);
+    m_ColorShader.reset(new ColorShader);
     if (!m_ColorShader)
     {
         return false;
@@ -939,7 +939,7 @@ bool BaseVRApp::init(HWND hWnd)
 
 
     // Create the render to texture object.
-    m_RenderTextureLeft.reset(new RenderTextureClass);
+    m_RenderTextureLeft.reset(new RenderTexture);
     if (!m_RenderTextureLeft)
     {
         return false;
@@ -952,7 +952,7 @@ bool BaseVRApp::init(HWND hWnd)
         return false;
     }
 
-    m_RenderTextureRight.reset(new RenderTextureClass);
+    m_RenderTextureRight.reset(new RenderTexture);
     if (!m_RenderTextureRight)
     {
         return false;
@@ -966,7 +966,7 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Create the debug window object.
-    m_DebugWindowLeft.reset(new DebugWindowClass);
+    m_DebugWindowLeft.reset(new DebugWindow);
     if (!m_DebugWindowLeft)
     {
         return false;
@@ -980,7 +980,7 @@ bool BaseVRApp::init(HWND hWnd)
         return false;
     }
 
-    m_DebugWindowRight.reset(new DebugWindowClass);
+    m_DebugWindowRight.reset(new DebugWindow);
     if (!m_DebugWindowRight)
     {
         return false;
@@ -1166,33 +1166,8 @@ void BaseVRApp::SendKey(int action, int key)
     }
 }
 
-void BaseVRApp::ProcessButton(int device, const vr::VRControllerState_t &state)
+void BaseVRApp::ProcessButton(int , const vr::VRControllerState_t &)
 {
-    vr::EVRButtonId buttons[6] = { vr::k_EButton_DPad_Left, vr::k_EButton_DPad_Up , vr::k_EButton_DPad_Right, vr::k_EButton_DPad_Down, vr::k_EButton_A, vr::k_EButton_ApplicationMenu };
-    if (device >= 2)
-        return;
-
-    FindKeyboard();
-
-    SetFocus(m_source_parent_window);
-
-    uint64_t pressed_buttons = ButtonsFromState(state);
-    for (int i = 0; i < 6; i++)
-    {
-        uint64_t mask = vr::ButtonMaskFromId(buttons[i]);
-        uint64_t current_button_state = pressed_buttons & mask;
-        uint64_t previous_button_state = m_prev_state[device] & mask;
-        if (current_button_state && !previous_button_state)
-        {
-            SendKey(WM_KEYDOWN, m_button_to_key_map[m_keys[device*6+i]]);
-        }
-        if (!current_button_state && previous_button_state)
-        {
-            SendKey(WM_KEYUP, m_button_to_key_map[m_keys[device*6+i]]);
-        }
-    }
-
-    m_prev_state[device] = pressed_buttons;
 }
 
 
@@ -1426,16 +1401,17 @@ void BaseVRApp::UpdateHMDMatrixPose()
 // this is the function that cleans up D3D and VR
 void BaseVRApp::clean(void)
 {
-    InternalClean();
-
     // Release the color shader object.
-    m_ColorShader.release();
+    if (m_ColorShader.get())
+        m_ColorShader.release();
 
     // Release the model object.	
-    m_Screen.release();
+    if (m_Screen.get())
+        m_Screen.release();
 
     // Release the camera object.
-    m_CameraLeft.release();
+    if (m_CameraLeft.get())
+        m_CameraLeft.release();
 
     if (m_pImmediateContext) m_pImmediateContext->ClearState();
     m_pDepthStencilView.Release();
@@ -1445,12 +1421,17 @@ void BaseVRApp::clean(void)
     m_pImmediateContext.Release();
     m_pDevice.Release();
 
-    m_DesktopGrabber.release();
+    if (m_DesktopGrabber.get())
+        m_DesktopGrabber.release();
 
-    m_RenderTextureLeft->Shutdown();
-    m_RenderTextureRight->Shutdown();
-    m_DebugWindowLeft->Shutdown();
-    m_DebugWindowRight->Shutdown();
+    if (m_RenderTextureLeft.get())
+        m_RenderTextureLeft->Shutdown();
+    if (m_RenderTextureRight.get())
+        m_RenderTextureRight->Shutdown();
+    if (m_DebugWindowLeft.get())
+        m_DebugWindowLeft->Shutdown();
+    if (m_DebugWindowRight.get())
+        m_DebugWindowRight->Shutdown();
 
     if (m_pHMD)
     {

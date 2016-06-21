@@ -1,18 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: rendertextureclass.h
+// Filename: renderTexture.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _RENDERTEXTURECLASS_H_
-#define _RENDERTEXTURECLASS_H_
+#ifndef _RENDERTexture_H_
+#define _RENDERTexture_H_
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: RenderTextureClass
+// Class name: RenderTexture
 ////////////////////////////////////////////////////////////////////////////////
-class RenderTextureClass
+class RenderTexture
 {
 public:
-	RenderTextureClass();
-	RenderTextureClass(const RenderTextureClass&);
-	~RenderTextureClass();
+	RenderTexture();
+	RenderTexture(const RenderTexture&);
+	~RenderTexture();
 
 	bool Initialize(ID3D11Device*, int, int);
 	void Shutdown();

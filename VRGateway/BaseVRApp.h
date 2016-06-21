@@ -1,13 +1,13 @@
 #pragma once
 
 class DesktopGrabber;
-class CameraClass;
-class ModelClass;
-class ScreenClass;
-class ColorShaderClass;
-class RenderTextureClass;
-class DebugWindowClass;
-class TextureClass;
+class Camera;
+class Model;
+class Screen;
+class ColorShader;
+class RenderTexture;
+class DebugWindow;
+class Texture;
 
 #define VRCLIENTWIDTH 640
 #define VRCLIENTHEIGHT 360
@@ -35,7 +35,7 @@ protected:
     virtual bool setupWorld() = 0;
     virtual void HandleController() = 0;
     virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left) = 0;
-    virtual void InternalClean() = 0;
+    virtual void ProcessButton(int device, const vr::VRControllerState_t &state);
     virtual bool NeedScreen(); 
 
 
@@ -58,7 +58,6 @@ protected:
     uint64_t ButtonsFromState(const vr::VRControllerState_t &state);
     void FindKeyboard();
     void SendKey(int action, int key);
-    void ProcessButton(int device, const vr::VRControllerState_t &state);
     void UpdateHMDMatrixPose();
     Matrix4 ConvertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);
     Matrix4 GetCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
@@ -84,16 +83,16 @@ protected:
     D3D_DRIVER_TYPE			m_driverType;
     D3D_FEATURE_LEVEL		m_featureLevel;
     D3D11_VIEWPORT			m_viewport;
-    std::unique_ptr<CameraClass> m_CameraLeft;
-    std::unique_ptr<CameraClass> m_CameraRight;
+    std::unique_ptr<Camera> m_CameraLeft;
+    std::unique_ptr<Camera> m_CameraRight;
 
-    std::unique_ptr<ScreenClass> m_Screen;
+    std::unique_ptr<Screen> m_Screen;
 
-    std::unique_ptr<ColorShaderClass> m_ColorShader;
-    std::unique_ptr<RenderTextureClass> m_RenderTextureLeft;
-    std::unique_ptr<RenderTextureClass> m_RenderTextureRight;
-    std::unique_ptr<DebugWindowClass> m_DebugWindowLeft;
-    std::unique_ptr<DebugWindowClass>m_DebugWindowRight;
+    std::unique_ptr<ColorShader> m_ColorShader;
+    std::unique_ptr<RenderTexture> m_RenderTextureLeft;
+    std::unique_ptr<RenderTexture> m_RenderTextureRight;
+    std::unique_ptr<DebugWindow> m_DebugWindowLeft;
+    std::unique_ptr<DebugWindow>m_DebugWindowRight;
     
     uint32_t m_nRenderWidth;
     uint32_t m_nRenderHeight;
@@ -132,7 +131,7 @@ protected:
     bool m_errorshown;
     HANDLE m_keyboard_handle;
 
-    std::unique_ptr<TextureClass> m_source_texture;
+    std::unique_ptr<Texture> m_source_texture;
     std::vector<std::string> m_keys;
     std::map<std::string, int> m_button_to_key_map;
 

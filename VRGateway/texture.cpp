@@ -1,31 +1,31 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: textureclass.cpp
+// Filename: Texture.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "textureclass.h"
+#include "Texture.h"
 //#include <vector>
 //#include "lodepng.h"
 //#include <strstream>
 #include <string>
 #include "WICTextureLoader.h"
 
-TextureClass::TextureClass()
+Texture::Texture()
 {
 	m_texture = 0;
 }
 
 
-TextureClass::TextureClass(const TextureClass& other)
+Texture::Texture(const Texture& other)
 {
 }
 
 
-TextureClass::~TextureClass()
+Texture::~Texture()
 {
 }
 
 
-bool TextureClass::Initialize(ID3D11Device*device, const char*filename)
+bool Texture::Initialize(ID3D11Device*device, const char*filename)
 {
     std::string src(filename);
     std::wstring dst;
@@ -35,7 +35,7 @@ bool TextureClass::Initialize(ID3D11Device*device, const char*filename)
     return Initialize(device, dst.c_str());
 }
 
-bool TextureClass::Initialize(ID3D11Device* device, const WCHAR* filename)
+bool Texture::Initialize(ID3D11Device* device, const WCHAR* filename)
 {
 	HRESULT result;
 	std::wstring wsFileName(filename);
@@ -49,7 +49,7 @@ bool TextureClass::Initialize(ID3D11Device* device, const WCHAR* filename)
 }
 
 
-void TextureClass::Shutdown()
+void Texture::Shutdown()
 {
 	// Release the texture resource.
 	if(m_texture)
@@ -61,7 +61,7 @@ void TextureClass::Shutdown()
 	return;
 }
 
-void TextureClass::SetTexture(ID3D11ShaderResourceView* texture)
+void Texture::SetTexture(ID3D11ShaderResourceView* texture)
 {
     Shutdown();
     m_texture = texture;
@@ -69,7 +69,7 @@ void TextureClass::SetTexture(ID3D11ShaderResourceView* texture)
 
 }
 
-ID3D11ShaderResourceView* TextureClass::GetTexture()
+ID3D11ShaderResourceView* Texture::GetTexture()
 {
 	return m_texture;
 }

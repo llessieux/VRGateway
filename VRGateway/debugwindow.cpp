@@ -1,28 +1,28 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: debugwindowclass.cpp
+// Filename: debugwindow.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "debugwindowclass.h"
+#include "debugwindow.h"
 
 
-DebugWindowClass::DebugWindowClass()
+DebugWindow::DebugWindow()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
 }
 
 
-DebugWindowClass::DebugWindowClass(const DebugWindowClass& other)
+DebugWindow::DebugWindow(const DebugWindow& other)
 {
 }
 
 
-DebugWindowClass::~DebugWindowClass()
+DebugWindow::~DebugWindow()
 {
 }
 
 
-bool DebugWindowClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, int bitmapWidth, int bitmapHeight)
+bool DebugWindow::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, int bitmapWidth, int bitmapHeight)
 {
 	bool result;
 
@@ -50,7 +50,7 @@ bool DebugWindowClass::Initialize(ID3D11Device* device, int screenWidth, int scr
 }
 
 
-void DebugWindowClass::Shutdown()
+void DebugWindow::Shutdown()
 {
 	// Shutdown the vertex and index buffers.
 	ShutdownBuffers();
@@ -59,7 +59,7 @@ void DebugWindowClass::Shutdown()
 }
 
 
-bool DebugWindowClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
+bool DebugWindow::Render(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
 {
 	bool result;
 
@@ -78,13 +78,13 @@ bool DebugWindowClass::Render(ID3D11DeviceContext* deviceContext, int positionX,
 }
 
 
-int DebugWindowClass::GetIndexCount()
+int DebugWindow::GetIndexCount()
 {
 	return m_indexCount;
 }
 
 
-bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
+bool DebugWindow::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -174,7 +174,7 @@ bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 }
 
 
-void DebugWindowClass::ShutdownBuffers()
+void DebugWindow::ShutdownBuffers()
 {
 	// Release the index buffer.
 	if(m_indexBuffer)
@@ -194,7 +194,7 @@ void DebugWindowClass::ShutdownBuffers()
 }
 
 
-bool DebugWindowClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
+bool DebugWindow::UpdateBuffers(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
 {
 	float left, right, top, bottom;
 	VertexType* vertices;
@@ -278,7 +278,7 @@ bool DebugWindowClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int pos
 }
 
 
-void DebugWindowClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void DebugWindow::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;

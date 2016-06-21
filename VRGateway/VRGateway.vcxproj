@@ -151,39 +151,40 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cameraclass.h" />
-    <ClInclude Include="colorshaderclass.h" />
-    <ClInclude Include="debugwindowclass.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="colorshader.h" />
+    <ClInclude Include="debugwindow.h" />
     <ClInclude Include="DesktopGrabber.h" />
     <ClInclude Include="VRGateway.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="Matrices.h" />
-    <ClInclude Include="modelclass.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="openvr.h" />
-    <ClInclude Include="rendertextureclass.h" />
+    <ClInclude Include="rendertexture.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="ScreenClass.h" />
+    <ClInclude Include="Screen.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="BaseVRApp.h" />
     <ClInclude Include="TaikoVRApp.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="textureclass.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="Vectors.h" />
     <ClInclude Include="VLCVRApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\PPSSPPPatch\RawInput.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="cameraclass.cpp">
+    <ClCompile Include="camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="colorshaderclass.cpp">
+    <ClCompile Include="colorshader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="debugwindowclass.cpp">
+    <ClCompile Include="debugwindow.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -196,15 +197,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="modelclass.cpp">
+    <ClCompile Include="model.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="rendertextureclass.cpp">
+    <ClCompile Include="rendertexture.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ScreenClass.cpp" />
+    <ClCompile Include="Screen.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -213,7 +214,7 @@
     </ClCompile>
     <ClCompile Include="BaseVRApp.cpp" />
     <ClCompile Include="TaikoVRApp.cpp" />
-    <ClCompile Include="textureclass.cpp">
+    <ClCompile Include="texture.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>

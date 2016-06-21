@@ -1,25 +1,25 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: ScreeClass.h
+// Filename: Screen.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _ScreeClass_H_
-#define _ScreeClass_H_
+#ifndef _Screen_H_
+#define _Screen_H_
 
-#include "ModelClass.h"
+#include "Model.h"
 
-class ScreenClass : public ModelClass
+class Screen : public Model
 {
 
 public:
-    ScreenClass();
-	~ScreenClass();
+    Screen();
+	~Screen();
 
 	bool Initialize(ID3D11Device*, float scale_x, float texture_scale=1.0f, float texture_offset=0.0f);
-    void SetTexture(TextureClass *texture);
+    void SetTexture(Texture *texture);
 
     void SetScreenSize(float size);
     void SetScreenPosition(Vector3 screen_position);
 private:
-    ScreenClass(const ScreenClass&);
+    Screen(const Screen&);
     bool InitializeBuffers(ID3D11Device*);
     void AddScreenToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices);
 

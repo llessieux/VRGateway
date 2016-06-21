@@ -19,7 +19,7 @@ typedef Matrix4 D3DXMATRIX;
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ColorShaderClass
 ////////////////////////////////////////////////////////////////////////////////
-class ColorShaderClass
+class ColorShader
 {
 private:
 	struct MatrixBufferType
@@ -30,9 +30,9 @@ private:
 	};
 
 public:
-	ColorShaderClass();
-	ColorShaderClass(const ColorShaderClass&);
-	~ColorShaderClass();
+	ColorShader();
+	ColorShader(const ColorShader&);
+	~ColorShader();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();

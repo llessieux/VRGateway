@@ -33,13 +33,17 @@ protected:
     virtual void HandleController();
     virtual bool setupWorld();
     virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left);
-    virtual void InternalClean();
+    virtual void ProcessButton(int device, const vr::VRControllerState_t &state);
 
-    StickHitRegion CheckStickHit(const Vector3 &world_pos, const Vector3 &zDir);
+    StickHitRegion CheckStickHit(const Vector3 &tip_position, const Vector3 &stick_origin);
     bool linePlaneIntersection(Vector3 &contact, const Vector3 &pt1, const Vector3 &pt2, const Vector3 &plane_normal, const Vector3 &plane_coord);
 
-    std::unique_ptr<ModelClass> m_drum_stick;
-    std::vector<ModelClass *> m_objects;
+    std::unique_ptr<Model> m_drum_stick;
+    std::vector<Model *> m_objects;
+
+    std::unique_ptr<Model> m_cube;
     DrumHitData m_drumHitData;
+
+    bool m_enable_logging;
 };
 

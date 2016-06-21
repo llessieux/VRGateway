@@ -1,19 +1,19 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: textureclass.h
+// Filename: Texture.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _TEXTURECLASS_H_
-#define _TEXTURECLASS_H_
+#ifndef _Texture_H_
+#define _Texture_H_
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: TextureClass
+// Class name: Texture
 ////////////////////////////////////////////////////////////////////////////////
-class TextureClass
+class Texture
 {
 public:
-	TextureClass();
-	TextureClass(const TextureClass&);
-	~TextureClass();
+	Texture();
+	Texture(const Texture&);
+	~Texture();
 
     bool Initialize(ID3D11Device*, const WCHAR*);
     bool Initialize(ID3D11Device*, const char*);
