@@ -9,15 +9,15 @@ public:
     virtual ~VLCVRApp();
 
 protected:
-    virtual void HandleController();
-    virtual bool setupWorld();
-    virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left);
-    virtual bool NeedScreen();
-    virtual const wchar_t *GetSourceParentClassName() const;
-    virtual const wchar_t *GetSourceParentWindowName() const;
-    virtual const wchar_t *GetSourceClassName() const;
-    virtual const wchar_t *GetSourceWindowName() const;
-    virtual void ProcessButton(int device, const vr::VRControllerState_t &state);
+    virtual void HandleController() override;
+    virtual bool setupWorld() override;
+    virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left) override;
+    virtual bool NeedScreen() override;
+    virtual const wchar_t *GetSourceParentClassName() const override;
+    virtual const wchar_t *GetSourceParentWindowName() const override;
+    virtual const wchar_t *GetSourceClassName() const override;
+    virtual const wchar_t *GetSourceWindowName() const override;
+    virtual void ProcessButton(const ControllerID device, const vr::VRControllerState_t &state) override;
 
 
     void ButtonPressed(vr::EVRButtonId button);

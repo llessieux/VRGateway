@@ -11,20 +11,24 @@
 class Texture
 {
 public:
-	Texture();
-	Texture(const Texture&);
-	~Texture();
+    Texture();
+    ~Texture();
 
-    bool Initialize(ID3D11Device*, const WCHAR*);
-    bool Initialize(ID3D11Device*, const char*);
-	void Shutdown();
+    //Initialize the texture via a filename
+    bool Initialize(ID3D11Device* device, const WCHAR* filename);
+    bool Initialize(ID3D11Device* device, const char* filename);
 
-	ID3D11ShaderResourceView* GetTexture();
+
+    void Shutdown();
+
+    ID3D11ShaderResourceView* GetTexture();
 
     void SetTexture(ID3D11ShaderResourceView* texture);
 
 private:
-	ID3D11ShaderResourceView* m_texture;
+    Texture(const Texture&);
+    
+    CComPtr<ID3D11ShaderResourceView> m_texture;
 };
 
 #endif

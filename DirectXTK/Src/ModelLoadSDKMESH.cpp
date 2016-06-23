@@ -166,7 +166,7 @@ namespace DXUT
     enum FRAME_TRANSFORM_TYPE
     {
         FTT_RELATIVE = 0,
-        FTT_ABSOLUTE,		//This is not currently used but is here to support absolute transformations in the future
+        FTT_ABSOLUTE,        //This is not currently used but is here to support absolute transformations in the future
     };
 
     //--------------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ namespace DXUT
         UINT ChildFrame;
         UINT SiblingFrame;
         DirectX::XMFLOAT4X4 Matrix;
-        UINT AnimationDataIndex;		//Used to index which set of keyframes transforms this frame
+        UINT AnimationDataIndex;        //Used to index which set of keyframes transforms this frame
     };
 
     struct SDKMESH_MATERIAL
@@ -291,33 +291,33 @@ namespace DXUT
 
         union
         {
-            UINT64 Force64_1;			//Force the union to 64bits
+            UINT64 Force64_1;            //Force the union to 64bits
             ID3D11Texture2D* pDiffuseTexture11;
         };
         union
         {
-            UINT64 Force64_2;			//Force the union to 64bits
+            UINT64 Force64_2;            //Force the union to 64bits
             ID3D11Texture2D* pNormalTexture11;
         };
         union
         {
-            UINT64 Force64_3;			//Force the union to 64bits
+            UINT64 Force64_3;            //Force the union to 64bits
             ID3D11Texture2D* pSpecularTexture11;
         };
 
         union
         {
-            UINT64 Force64_4;			//Force the union to 64bits
+            UINT64 Force64_4;            //Force the union to 64bits
             ID3D11ShaderResourceView* pDiffuseRV11;
         };
         union
         {
-            UINT64 Force64_5;		    //Force the union to 64bits
+            UINT64 Force64_5;            //Force the union to 64bits
             ID3D11ShaderResourceView* pNormalRV11;
         };
         union
         {
-            UINT64 Force64_6;			//Force the union to 64bits
+            UINT64 Force64_6;            //Force the union to 64bits
             ID3D11ShaderResourceView* pSpecularRV11;
         };
     };

@@ -2,6 +2,7 @@
 #include "VLCVRApp.h"
 #include "Screen.h"
 #include "colorshader.h"
+#include <array>
 
 VLCVRApp::VLCVRApp(bool stereo_input) : m_stereo_input(stereo_input)
 {
@@ -51,25 +52,23 @@ void VLCVRApp::ButtonPressed(vr::EVRButtonId button)
     }
 }
 
-void VLCVRApp::ProcessButton(int device, const vr::VRControllerState_t &state)
+void VLCVRApp::ProcessButton(const ControllerID device, const vr::VRControllerState_t &state)
 {
-    vr::EVRButtonId buttons[6] = { vr::k_EButton_DPad_Left, vr::k_EButton_DPad_Up , vr::k_EButton_DPad_Right, vr::k_EButton_DPad_Down, vr::k_EButton_A, vr::k_EButton_ApplicationMenu };
-    if (device >= 2)
-        return;
+    std::array<vr::EVRButtonId,6>  buttons = { vr::k_EButton_DPad_Left, vr::k_EButton_DPad_Up , vr::k_EButton_DPad_Right, vr::k_EButton_DPad_Down, vr::k_EButton_A, vr::k_EButton_ApplicationMenu };
 
     uint64_t pressed_buttons = ButtonsFromState(state);
-    for (int i = 0; i < 6; i++)
+    for(auto button : buttons)
     {
-        uint64_t mask = vr::ButtonMaskFromId(buttons[i]);
+        uint64_t mask = vr::ButtonMaskFromId(button);
         uint64_t current_button_state = pressed_buttons & mask;
-        uint64_t previous_button_state = m_prev_state[device] & mask;
+        uint64_t previous_button_state = m_prev_state.at(device) & mask;
         if (current_button_state && !previous_button_state)
         {
-            ButtonPressed(buttons[i]);
+            ButtonPressed(button);
         }
     }
 
-    m_prev_state[device] = pressed_buttons;
+    m_prev_state.at(device) = pressed_buttons;
 }
 
 void VLCVRApp::HandleController()
@@ -80,7 +79,7 @@ bool VLCVRApp::renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMA
 {
     bool result = true;
     
-    Model *obj = (!left & m_stereo_input ) ? m_right_screen.get() : m_left_screen.get();
+    Model *obj = ((!left) & m_stereo_input ) ? m_right_screen.get() : m_left_screen.get();
     if (obj == nullptr)
         return false;
     obj->Render(m_pImmediateContext);
@@ -104,7 +103,7 @@ bool VLCVRApp::setupWorld()
     int rect_width = src_rect.right - src_rect.left + 1;
     int rect_height = src_rect.bottom - src_rect.top + 1;
 
-    float sx = (float)rect_width / (float)rect_height;
+    float sx = static_cast<float>(rect_width) / static_cast<float>(rect_height);
 
     Vector3 screen_position(0, -0.1f, -2.0f);
 
@@ -118,10 +117,10 @@ bool VLCVRApp::setupWorld()
     bool result = m_left_screen->Initialize(m_pDevice, sx, input_scale,0.0f);
     if (!result)
     {
-        ::MessageBox(0, L"Could not initialize the model object.", L"Error", MB_OK);
+        MyDebugDlg(L"Could not initialize the model object.");
         return false;
     }
-    m_left_screen->SetTexture(m_source_texture.get());
+    m_left_screen->SetTexture(m_source_texture);
 
     if (m_stereo_input)
     {
@@ -132,10 +131,10 @@ bool VLCVRApp::setupWorld()
         result = m_right_screen->Initialize(m_pDevice, sx, 0.5f, 0.5f);
         if (!result)
         {
-            ::MessageBox(0, L"Could not initialize the model object.", L"Error", MB_OK);
+            MyDebugDlg(L"Could not initialize the model object." );
             return false;
         }
-        m_right_screen->SetTexture(m_source_texture.get());
+        m_right_screen->SetTexture(m_source_texture);
     }
     return true;
 }

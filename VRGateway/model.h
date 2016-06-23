@@ -23,14 +23,14 @@
 class Model
 {
 public:
-	struct VertexType
-	{
-		D3DXVECTOR3 position;
-	    D3DXVECTOR2 texture;
-		D3DXVECTOR3 normal;
+    struct VertexType
+    {
+        D3DXVECTOR3 position;
+        D3DXVECTOR2 texture;
+        D3DXVECTOR3 normal;
 
-		VertexType() {}
-	};
+        VertexType() {}
+    };
 
     class ObjectMaterialProperties
     {
@@ -73,52 +73,57 @@ public:
     };
 
 public:
-	Model();
-	Model(const Model&);
-	~Model();
+    Model();
+    virtual ~Model();
 
-	bool Initialize(ID3D11Device*, WCHAR*);
-    bool InitializeFromWavefrontFile(ID3D11Device*, const char*, const Matrix4 &, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback);
-	void Shutdown();
-	void Render(ID3D11DeviceContext*);
+    bool Initialize(ID3D11Device*, WCHAR*);
+    bool InitializeFromWavefrontFile(ID3D11Device*, const std::string &, const Matrix4 &, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback);
+    void Shutdown();
+    void Render(ID3D11DeviceContext*);
 
-	int GetIndexCount();
+    int GetIndexCount();
 
-	ID3D11ShaderResourceView* GetTexture();
+    ID3D11ShaderResourceView* GetTexture();
 
     bool InitializeBuffers(ID3D11Device*);
 
+    void SetTexture(std::shared_ptr<Texture> texture);
+
 protected:
-	
-	void ShutdownBuffers();
-	void RenderBuffers(ID3D11DeviceContext*);
+    
+    void ShutdownBuffers();
+    void RenderBuffers(ID3D11DeviceContext*);
 
-	void ReleaseTexture();
+    void ReleaseTexture();
 
-	void AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal);
-	void AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices);
+    void AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal);
+    void AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices);
 
-    bool LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat);
-    void LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs);
+    bool LoadFromWavefrontFile(const std::string &filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat);
+    void LoadMaterialLibs(const std::string &directory, const std::string &filename, std::vector<StoredMaterial> &libs);
 
     template<typename T>
     bool Model::LoadTexture(ID3D11Device* device, T* filename)
     {
         // Create the texture object.
-        m_Texture = new Texture;
-        if (!m_Texture) { return false; }
+        m_Texture = std::make_shared<Texture>();
+        if (m_Texture.get() == nullptr) { return false; }
 
         // Initialize the texture object.
         return m_Texture->Initialize(device, filename);
     }
 
 
+    Model(const Model&);
+
 protected:
 
-	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
-	int m_vertexCount, m_indexCount;
+    CComPtr<ID3D11Buffer> m_vertexBuffer;
+    CComPtr<ID3D11Buffer> m_indexBuffer;
+    unsigned int m_vertexCount;
+    unsigned int m_indexCount;
 
-	Texture* m_Texture;
+    std::shared_ptr<Texture> m_Texture;
     float m_scale_x;
 };
 

@@ -31,11 +31,16 @@ public:
     void SetSourceParentHWnd(HWND hwnd);
     void SetSourceHWnd(HWND hwnd);
 protected:
+    enum ControllerID {
+        e_controller_0,
+        e_controller_1
+    };
 
     virtual bool setupWorld() = 0;
     virtual void HandleController() = 0;
     virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left) = 0;
-    virtual void ProcessButton(int device, const vr::VRControllerState_t &state);
+
+    virtual void ProcessButton(const ControllerID device, const vr::VRControllerState_t &state);
     virtual bool NeedScreen(); 
 
 
@@ -47,6 +52,7 @@ protected:
         UINT DirtyCount;
         UINT MoveCount;
     } FRAME_DATA;
+
 
     void clean();
     bool GetPSPRect(RECT &rect);
@@ -63,7 +69,6 @@ protected:
     Matrix4 GetCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
     Matrix4 GetHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
     Matrix4 GetHMDMatrixPoseEye(vr::Hmd_Eye nEye);
-    std::string MatrixToString(const Matrix4& matrix);
 
     D3DXMATRIX m_projectionMatrix;
 
@@ -80,9 +85,9 @@ protected:
     CComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
     CComPtr<ID3D11DepthStencilState> m_pDSState;
     CComPtr<ID3D11DepthStencilState> m_depthDisabledStencilState;
-    D3D_DRIVER_TYPE			m_driverType;
-    D3D_FEATURE_LEVEL		m_featureLevel;
-    D3D11_VIEWPORT			m_viewport;
+    D3D_DRIVER_TYPE            m_driverType;
+    D3D_FEATURE_LEVEL        m_featureLevel;
+    D3D11_VIEWPORT            m_viewport;
     std::unique_ptr<Camera> m_CameraLeft;
     std::unique_ptr<Camera> m_CameraRight;
 
@@ -112,18 +117,18 @@ protected:
 
     vr::IVRSystem *m_pHMD;
     vr::IVRRenderModels *m_pRenderModels;
-    vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-    Matrix4 m_rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
+    std::vector<vr::TrackedDevicePose_t> m_rTrackedDevicePose;
+    std::vector<Matrix4> m_rmat4DevicePose;
 
     int m_iTrackedControllerCount;
     int m_iTrackedControllerCount_Last;
     int m_iValidPoseCount;
     int m_iValidPoseCount_Last;
 
-    uint64_t m_prev_state[2];
+    std::array<uint64_t,2> m_prev_state;
 
     std::string m_strPoseClasses;                            // what classes we saw poses for this frame
-    char m_rDevClassChar[vr::k_unMaxTrackedDeviceCount];   // for each device, a character representing its class
+    std::vector<char> m_rDevClassChar;   // for each device, a character representing its class
 
     HWND m_source_parent_window;
     HWND m_source_window;
@@ -131,7 +136,7 @@ protected:
     bool m_errorshown;
     HANDLE m_keyboard_handle;
 
-    std::unique_ptr<Texture> m_source_texture;
+    std::shared_ptr<Texture> m_source_texture;
     std::vector<std::string> m_keys;
     std::map<std::string, int> m_button_to_key_map;
 

@@ -25,64 +25,54 @@ bool Model::ObjectMaterialProperties::Equals(const Model::ObjectMaterialProperti
 }
 
 
-Model::Model()
-{
-	m_vertexBuffer = 0;
-	m_indexBuffer = 0;
-    m_scale_x = 1.0f;
-	m_Texture = 0;
-}
-
-
-Model::Model(const Model& other)
+Model::Model():
+    m_scale_x(1.0f),
+    m_indexCount(0),
+    m_vertexCount(0)
 {
 }
-
 
 Model::~Model()
 {
 }
 
 
-bool
-Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat)
+void Model::SetTexture(std::shared_ptr<Texture> texture)
 {
+    m_Texture = texture;
+}
+
+
+bool
+Model::LoadFromWavefrontFile(const std::string &filename, std::vector<VertexType> &final_vertices, std::vector<unsigned long> &indices, std::vector<StoredMaterial> &libs, const Matrix4 &mat)
+{
+    if (filename.empty())
+        return false;
+
     FILE *f = NULL;
-    char directory[256];
-    memset(directory, 0, 256);
-    const char *last_slash = strrchr(filename, '\\');
-    int size = 0;
-    if (last_slash == nullptr)
+    std::string directory;
+    size_t last_bslash = filename.rfind('\\');
+    size_t last_fslash = filename.rfind('/');
+    
+    if ((last_bslash == std::string::npos)&&
+        (last_fslash == std::string::npos))
     {
-        memcpy(directory, ".\\", 3);
+        directory = ".\\";
     }
     else
     {
-        size = (int)(last_slash - filename);
-        if (size < 0)
-        {
-            last_slash = strrchr(filename, '/');
-            if (last_slash != nullptr)
-            {
-                size = (int)(last_slash - filename);
-                if (size < 0)
-                {
-                    memcpy(directory, ".\\", 3);
-                    size = 0;
-                }
-            }
-        }
+        size_t size = (last_bslash == std::string::npos) ? last_fslash : (last_fslash == std::string::npos ? last_bslash : std::max(last_bslash, last_fslash));
+        directory = filename;
+        directory.resize(size+1);
     }
-    if (size != 0)
-        memcpy(directory, filename, size + 1);
 
-    errno_t err = fopen_s(&f, filename, "r");
+    errno_t err = fopen_s(&f, filename.c_str(), "r");
     if (err != 0)
         return false;
 
     if (f)
     {
-        char buffer[1024];
+        char buffer[1024] = { 0 };
         std::vector<D3DXVECTOR3> wvertices;
         std::vector<D3DXVECTOR3> wnormals;
         std::vector<D3DXVECTOR2> wtexcoords;
@@ -134,13 +124,13 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
                         {
                             if (it->name == mat_name)
                             {
-                                ObjectMaterialProperties mat;
+                                ObjectMaterialProperties material;
 
-                                mat = it->mat;
-                                if (mat.m_specular_exponent == 0.0)
-                                    mat.m_specular_exponent = 80.0f;
+                                material = it->mat;
+                                if (material.m_specular_exponent == 0.0)
+                                    material.m_specular_exponent = 80.0f;
 
-                                subObjects.push_back(mat);
+                                subObjects.push_back(material);
                                 break;
                             }
                             it++;
@@ -153,16 +143,16 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
                     if (strncmp(buffer_ptr, "g", 1) == 0)
                     {
                         buffer_ptr = strtok_s(NULL, " ", &context);
-                        ObjectMaterialProperties mat;
+                        ObjectMaterialProperties material;
 
                         if (!libs.empty())
                         {
-                            mat = libs.back().mat;
-                            if (mat.m_specular_exponent == 0.0)
-                                mat.m_specular_exponent = 80.0f;
+                            material = libs.back().mat;
+                            if (material.m_specular_exponent == 0.0)
+                                material.m_specular_exponent = 80.0f;
 
                         }
-                        subObjects.push_back(mat);
+                        subObjects.push_back(material);
                     }
                     break;
                 }
@@ -171,7 +161,7 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
                         (buffer_ptr[1] != 'c') &&
                         (buffer_ptr[1] != 'n'))
                     {
-                        float flt[3];
+                        float flt[3] = { 0.0f, 0.0f, 0.0f };
                         buffer_ptr = strtok_s(NULL, " ", &context);
                         for (int i = 0; i<3; i++)
                         {
@@ -187,7 +177,7 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
                     }
                     else if (buffer[1] == 'n')
                     {
-                        float flt[3];
+                        float flt[3] = { 0.0f, 0.0f, 0.0f };
                         buffer_ptr = strtok_s(NULL, " ", &context);
                         for (int i = 0; i<3; i++)
                         {
@@ -209,7 +199,7 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
                     }*/
                     else if (buffer[1] == 't')
                     {
-                        float texture[2];
+                        float texture[2] = { 0.0f, 0.0f };
                         buffer_ptr = strtok_s(NULL, " ", &context);
                         for (int i = 0; i<2; i++)
                         {
@@ -227,9 +217,9 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
 
                 case 'f':
                 {
-                    int v[4];
-                    int n[4];
-                    int t[4];
+                    int v[4] = { 0, 0, 0, 0 };
+                    int n[4] = { 0, 0, 0, 0 };
+                    int t[4] = { 0, 0, 0, 0 };
                     buffer_ptr = strtok_s(NULL, " ", &context);
                     int ok = 0;
                     for (int i = 0; i<4; i++)
@@ -363,17 +353,16 @@ Model::LoadFromWavefrontFile(const char *filename, std::vector<VertexType> &fina
 }
 
 
-void Model::LoadMaterialLibs(char *directory, char *filename, std::vector<StoredMaterial> &libs)
+void Model::LoadMaterialLibs(const std::string &directory, const std::string &filename, std::vector<StoredMaterial> &libs)
 {
-    FILE *f = NULL;
-    char fullname[256];
-    sprintf_s(fullname, 256, "%s%s", directory, filename);
-    errno_t err = fopen_s(&f, fullname, "r");
-    char buffer[256];
+    FILE *f = nullptr;
+    std::string fullname = directory + filename;
+    errno_t err = fopen_s(&f, fullname.c_str(), "r");
+    char buffer[256] = { 0 };
     bool new_mat = false;
     StoredMaterial stm;
-    char *context;
-    char *buffer_ptr;
+    char *context = nullptr;
+    char *buffer_ptr = nullptr;
 
     if (err == 0)
     {
@@ -457,7 +446,7 @@ void Model::LoadMaterialLibs(char *directory, char *filename, std::vector<Stored
     }
 }
 
-bool Model::InitializeFromWavefrontFile(ID3D11Device* device, const char *filename, const Matrix4 &mat, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback)
+bool Model::InitializeFromWavefrontFile(ID3D11Device* device, const std::string &filename, const Matrix4 &mat, std::function<void(const std::vector<VertexType> &vertices, const std::vector<unsigned long> &indices)> callback)
 {
     std::vector<VertexType> vertices;
     std::vector<StoredMaterial> libs;
@@ -478,42 +467,31 @@ bool Model::InitializeFromWavefrontFile(ID3D11Device* device, const char *filena
     }
 
     callback(vertices, indices);
-    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-    D3D11_SUBRESOURCE_DATA vertexData, indexData;
-    HRESULT result;
 
     // Set up the description of the static vertex buffer.
-    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = (UINT)(sizeof(VertexType) * vertices.size());
-    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDesc.CPUAccessFlags = 0;
-    vertexBufferDesc.MiscFlags = 0;
-    vertexBufferDesc.StructureByteStride = 0;
+    D3D11_BUFFER_DESC vertexBufferDesc = {
+        (UINT)(sizeof(VertexType) * vertices.size()),
+        D3D11_USAGE_DEFAULT,
+        D3D11_BIND_VERTEX_BUFFER,
+        0, 0, 0 };
 
     // Give the subresource structure a pointer to the vertex data.
-    vertexData.pSysMem = &vertices[0];
-    vertexData.SysMemPitch = 0;
-    vertexData.SysMemSlicePitch = 0;
+    D3D11_SUBRESOURCE_DATA vertexData = { vertices.data(), 0, 0 };
 
     // Now create the vertex buffer.
-    result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+    HRESULT result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
     if (FAILED(result))
     {
         return false;
     }
 
     // Set up the description of the static index buffer.
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = (UINT)(sizeof(unsigned long) * indices.size());
-    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indexBufferDesc.CPUAccessFlags = 0;
-    indexBufferDesc.MiscFlags = 0;
-    indexBufferDesc.StructureByteStride = 0;
+    D3D11_BUFFER_DESC indexBufferDesc = {
+        (UINT)(sizeof(unsigned long) * indices.size()) ,
+        D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER , 0, 0, 0 };
 
     // Give the subresource structure a pointer to the index data.
-    indexData.pSysMem = &indices[0];
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
+    D3D11_SUBRESOURCE_DATA indexData = { indices.data(), 0,0 };
 
     // Create the index buffer.
     result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
@@ -530,139 +508,139 @@ bool Model::InitializeFromWavefrontFile(ID3D11Device* device, const char *filena
 
 bool Model::Initialize(ID3D11Device* device, WCHAR* textureFilename)
 {
-	bool result;
+    bool result;
 
 
-	// Initialize the vertex and index buffers.
-	result = InitializeBuffers(device);
-	if(!result)
-	{
-		return false;
-	}
+    // Initialize the vertex and index buffers.
+    result = InitializeBuffers(device);
+    if(!result)
+    {
+        return false;
+    }
 
-	// Load the texture for this model.
-	result = LoadTexture(device, textureFilename);
-	if (!result)
-	{
-		return false;
-	}
+    // Load the texture for this model.
+    result = LoadTexture(device, textureFilename);
+    if (!result)
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 void Model::Shutdown()
 {
-	// Release the model texture.
-	ReleaseTexture();
+    // Release the model texture.
+    ReleaseTexture();
 
-	// Shutdown the vertex and index buffers.
-	ShutdownBuffers();
+    // Shutdown the vertex and index buffers.
+    ShutdownBuffers();
 
-	return;
+    return;
 }
 
 
 void Model::Render(ID3D11DeviceContext* deviceContext)
 {
-	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	RenderBuffers(deviceContext);
+    // Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
+    RenderBuffers(deviceContext);
 
-	return;
+    return;
 }
 
 
 int Model::GetIndexCount()
 {
-	return m_indexCount;
+    return m_indexCount;
 }
 
 ID3D11ShaderResourceView* Model::GetTexture()
 {
     if (m_Texture)
-	    return m_Texture->GetTexture();
+        return m_Texture->GetTexture();
     return nullptr;
 }
 
 void Model::AddVertex(float x, float y, float z, float tx, float ty, std::vector<VertexType> &vertdata, D3DXVECTOR3 normal)
 {
-	VertexType temp;
-	temp.position.set(x, y, z);
-	temp.texture.set(tx, ty);
-	temp.normal = normal;
-	vertdata.push_back(temp);
+    VertexType temp;
+    temp.position.set(x, y, z);
+    temp.texture.set(tx, ty);
+    temp.normal = normal;
+    vertdata.push_back(temp);
 }
 
 
 void Model::AddCubeToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices)
 {
-	// Matrix4 mat( outermat.data() );
+    // Matrix4 mat( outermat.data() );
     float depth = 0.01f;
-	Vector4 A = mat * Vector4(-0.5f, 0, 0, 1);
-	Vector4 B = mat * Vector4(0.5f* m_scale_x, 0, 0, 1);
-	Vector4 C = mat * Vector4(0.5f* m_scale_x, 1, 0, 1);
-	Vector4 D = mat * Vector4(-0.5f, 1, 0, 1);
-	Vector4 E = mat * Vector4(-0.5f, 0, depth, 1);
-	Vector4 F = mat * Vector4(0.5f* m_scale_x, 0, depth, 1);
-	Vector4 G = mat * Vector4(0.5f* m_scale_x, 1, depth, 1);
-	Vector4 H = mat * Vector4(-0.5f, 1, depth, 1);
+    Vector4 A = mat * Vector4(-0.5f, 0, 0, 1);
+    Vector4 B = mat * Vector4(0.5f* m_scale_x, 0, 0, 1);
+    Vector4 C = mat * Vector4(0.5f* m_scale_x, 1, 0, 1);
+    Vector4 D = mat * Vector4(-0.5f, 1, 0, 1);
+    Vector4 E = mat * Vector4(-0.5f, 0, depth, 1);
+    Vector4 F = mat * Vector4(0.5f* m_scale_x, 0, depth, 1);
+    Vector4 G = mat * Vector4(0.5f* m_scale_x, 1, depth, 1);
+    Vector4 H = mat * Vector4(-0.5f, 1, depth, 1);
 
-	int old_vertex_index = (int)vertdata.size();
-	// triangles instead of quads
-	D3DXVECTOR3 normal;
-	normal.set(0, 0, -1);
-	AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal); //Front
-	AddVertex(F.x, F.y, F.z, 1, 1, vertdata, normal);
-	AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
-	AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
-	AddVertex(H.x, H.y, H.z, 0, 0, vertdata, normal);
-	AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal);
+    int old_vertex_index = (int)vertdata.size();
+    // triangles instead of quads
+    D3DXVECTOR3 normal;
+    normal.set(0, 0, -1);
+    AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal); //Front
+    AddVertex(F.x, F.y, F.z, 1, 1, vertdata, normal);
+    AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
+    AddVertex(G.x, G.y, G.z, 1, 0, vertdata, normal);
+    AddVertex(H.x, H.y, H.z, 0, 0, vertdata, normal);
+    AddVertex(E.x, E.y, E.z, 0, 1, vertdata, normal);
 
-	normal.set(0, 0, 1);
-	AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal); //Back
-	AddVertex(A.x, A.y, A.z, 1, 1, vertdata, normal);
-	AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
-	AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
-	AddVertex(C.x, C.y, C.z, 0, 0, vertdata, normal);
-	AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal);
+    normal.set(0, 0, 1);
+    AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal); //Back
+    AddVertex(A.x, A.y, A.z, 1, 1, vertdata, normal);
+    AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
+    AddVertex(D.x, D.y, D.z, 1, 0, vertdata, normal);
+    AddVertex(C.x, C.y, C.z, 0, 0, vertdata, normal);
+    AddVertex(B.x, B.y, B.z, 0, 1, vertdata, normal);
 
-	normal.set(0, 1, 0);
-	AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal); //Top
-	AddVertex(G.x, G.y, G.z, 1, 1, vertdata, normal);
-	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
-	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
-	AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
-	AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal);
+    normal.set(0, 1, 0);
+    AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal); //Top
+    AddVertex(G.x, G.y, G.z, 1, 1, vertdata, normal);
+    AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+    AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+    AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
+    AddVertex(H.x, H.y, H.z, 0, 1, vertdata, normal);
 
-	normal.set(0, -1, 0);
-	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Bottom
-	AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
-	AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
-	AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
-	AddVertex(E.x, E.y, E.z, 0, 0, vertdata, normal);
-	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
+    normal.set(0, -1, 0);
+    AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Bottom
+    AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
+    AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
+    AddVertex(F.x, F.y, F.z, 1, 0, vertdata, normal);
+    AddVertex(E.x, E.y, E.z, 0, 0, vertdata, normal);
+    AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
 
-	normal.set(-1, 0, 0);
-	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Left
-	AddVertex(E.x, E.y, E.z, 1, 1, vertdata, normal);
-	AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
-	AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
-	AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
-	AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
+    normal.set(-1, 0, 0);
+    AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal); //Left
+    AddVertex(E.x, E.y, E.z, 1, 1, vertdata, normal);
+    AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
+    AddVertex(H.x, H.y, H.z, 1, 0, vertdata, normal);
+    AddVertex(D.x, D.y, D.z, 0, 0, vertdata, normal);
+    AddVertex(A.x, A.y, A.z, 0, 1, vertdata, normal);
 
-	normal.set(1, 0, 0);
-	AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal); //Right
-	AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
-	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
-	AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
-	AddVertex(G.x, G.y, G.z, 0, 0, vertdata, normal);
-	AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal);
+    normal.set(1, 0, 0);
+    AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal); //Right
+    AddVertex(B.x, B.y, B.z, 1, 1, vertdata, normal);
+    AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+    AddVertex(C.x, C.y, C.z, 1, 0, vertdata, normal);
+    AddVertex(G.x, G.y, G.z, 0, 0, vertdata, normal);
+    AddVertex(F.x, F.y, F.z, 0, 1, vertdata, normal);
 
-	int new_vertex_index = (int)vertdata.size();
+    int new_vertex_index = (int)vertdata.size();
 
-	for (int i = old_vertex_index; i < new_vertex_index; i++)
-	{
-		indices.push_back(i);
-	}
+    for (int i = old_vertex_index; i < new_vertex_index; i++)
+    {
+        indices.push_back(i);
+    }
 }
 
 
@@ -670,9 +648,6 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 {
     std::vector<VertexType> vertices;
     std::vector<unsigned long> indices;
-    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-    D3D11_SUBRESOURCE_DATA vertexData, indexData;
-    HRESULT result;
 
     float fScale = 0.05f;
     Matrix4 matScale;
@@ -680,111 +655,98 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 
     Matrix4 mat = matScale;
 
-	AddCubeToScene(mat, vertices, indices);
+    AddCubeToScene(mat, vertices, indices);
 
-	for (int i = 0; i < vertices.size() / 2; i++)
-	{
-		std::swap(vertices[i], vertices[vertices.size() - i - 1]);
-	}
-	// Set up the description of the static vertex buffer.
-    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = (UINT)(sizeof(VertexType) * vertices.size());
-    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDesc.CPUAccessFlags = 0;
-    vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
+    for (int i = 0; i < vertices.size() / 2; i++)
+    {
+        std::swap(vertices[i], vertices[vertices.size() - i - 1]);
+    }
+    // Set up the description of the static vertex buffer.
+    D3D11_BUFFER_DESC vertexBufferDesc = {
+        (UINT)(sizeof(VertexType) * vertices.size()),
+        D3D11_USAGE_DEFAULT,
+        D3D11_BIND_VERTEX_BUFFER,
+        0, 0, 0 };
 
-	// Give the subresource structure a pointer to the vertex data.
-    vertexData.pSysMem = &vertices[0];
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
+    // Give the subresource structure a pointer to the vertex data.
+    D3D11_SUBRESOURCE_DATA vertexData = { vertices.data(), 0, 0 };
 
-	// Now create the vertex buffer.
-    result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
+    // Now create the vertex buffer.
+    HRESULT result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
 
-	// Set up the description of the static index buffer.
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = (UINT)(sizeof(unsigned long) * indices.size());
-    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indexBufferDesc.CPUAccessFlags = 0;
-    indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
+    // Set up the description of the static index buffer.
+    D3D11_BUFFER_DESC indexBufferDesc = {
+        (UINT)(sizeof(unsigned long) * indices.size()),
+        D3D11_USAGE_DEFAULT,
+        D3D11_BIND_INDEX_BUFFER,
+        0, 0, 0 };
 
-	// Give the subresource structure a pointer to the index data.
-    indexData.pSysMem = &indices[0];
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
+    // Give the subresource structure a pointer to the index data.
+    D3D11_SUBRESOURCE_DATA indexData = { indices.data(), 0, 0 };
 
-	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
+    // Create the index buffer.
+    result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
 
-	m_vertexCount = (int)vertices.size();
-	m_indexCount = (int)indices.size();
+    m_vertexCount = (int)vertices.size();
+    m_indexCount = (int)indices.size();
 
-	return true;
+    return true;
 }
 
 
 void Model::ShutdownBuffers()
 {
-	// Release the index buffer.
-	if(m_indexBuffer)
-	{
-		m_indexBuffer->Release();
-		m_indexBuffer = 0;
-	}
+    // Release the index buffer.
+    if(m_indexBuffer)
+    {
+        m_indexBuffer.Release();
+    }
 
-	// Release the vertex buffer.
-	if(m_vertexBuffer)
-	{
-		m_vertexBuffer->Release();
-		m_vertexBuffer = 0;
-	}
+    // Release the vertex buffer.
+    if(m_vertexBuffer)
+    {
+        m_vertexBuffer.Release();
+    }
 
-	return;
+    return;
 }
 
 
 void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
-	unsigned int stride;
-	unsigned int offset;
-
-
-	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType); 
-	offset = 0;
+    // Set vertex buffer stride and offset.
+    unsigned int stride = sizeof(VertexType);
+    unsigned int offset = 0;
     
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+    // Set the vertex buffer to active in the input assembler so it can be rendered.
+    deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
     // Set the index buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
     // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	return;
+    return;
 }
 
 void Model::ReleaseTexture()
 {
-	// Release the texture object.
-	if (m_Texture)
-	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = nullptr;
-	}
+    // Release the texture object.
+    if (m_Texture)
+    {
+        m_Texture->Shutdown();
+        m_Texture.reset();
+    }
 
-	return;
+    return;
 }
 

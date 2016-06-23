@@ -37,41 +37,41 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_VRGATEWAY));
+    //HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_VRGATEWAY));
 
     MSG msg;
-	bool done;
+    bool done;
 
 
-	// Initialize the message structure.
-	ZeroMemory(&msg, sizeof(MSG));
+    // Initialize the message structure.
+    ZeroMemory(&msg, sizeof(MSG));
 
-	// Loop until there is a quit message from the window or the user.
-	done = false;
-	while (!done)
-	{
-		// Handle the windows messages.
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+    // Loop until there is a quit message from the window or the user.
+    done = false;
+    while (!done)
+    {
+        // Handle the windows messages.
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
 
-		// If windows signals to end the application then exit out.
-		if (msg.message == WM_QUIT)
-		{
-			done = true;
-		}
-		else
-		{
-			// Otherwise do the frame processing.
+        // If windows signals to end the application then exit out.
+        if (msg.message == WM_QUIT)
+        {
+            done = true;
+        }
+        else
+        {
+            // Otherwise do the frame processing.
             if (gtaikoVRApp.get())
                 gtaikoVRApp->render_frame();
             if (gVLCVRApp.get())
                 gVLCVRApp->render_frame();
-		}
+        }
 
-	}
+    }
 
     if (gtaikoVRApp.get())
         gtaikoVRApp.release();
@@ -95,7 +95,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_VRGATEWAY));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_VRGATEWAY);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_VRGATEWAY);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -179,7 +179,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            //HDC hdc = BeginPaint(hWnd, &ps);
+            BeginPaint(hWnd, &ps);
             EndPaint(hWnd, &ps);
         }
         break;

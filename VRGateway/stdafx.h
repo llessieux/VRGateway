@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <array>
+#include <string>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -31,5 +33,8 @@
 typedef Vector2 D3DXVECTOR2;
 typedef Vector3 D3DXVECTOR3;
 typedef Matrix4 D3DXMATRIX;
+
+#include <gsl.h>
+#include <span.h>
 
 

@@ -213,6 +213,7 @@
     <None Include="..\Taiko\taiko_stick.mtl">
       <Filter>TaikoModels</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VRGateway.rc">

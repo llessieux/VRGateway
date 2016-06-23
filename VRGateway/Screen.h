@@ -11,15 +11,15 @@ class Screen : public Model
 
 public:
     Screen();
-	~Screen();
+    virtual ~Screen();
 
-	bool Initialize(ID3D11Device*, float scale_x, float texture_scale=1.0f, float texture_offset=0.0f);
-    void SetTexture(Texture *texture);
+    bool Initialize(ID3D11Device*, float scale_x, float texture_scale=1.0f, float texture_offset=0.0f);
 
     void SetScreenSize(float size);
     void SetScreenPosition(Vector3 screen_position);
 private:
     Screen(const Screen&);
+
     bool InitializeBuffers(ID3D11Device*);
     void AddScreenToScene(Matrix4 mat, std::vector<VertexType> &vertdata, std::vector<unsigned long> &indices);
 

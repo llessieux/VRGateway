@@ -69,7 +69,7 @@ struct Vector3
 
     // ctors
     Vector3() : x(0), y(0), z(0) {};
-    Vector3(float x, float y, float z) : x(x), y(y), z(z) {};
+    Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {};
 
     // utils functions
     void        set(float x, float y, float z);
@@ -116,7 +116,7 @@ struct Vector4
 
     // ctors
     Vector4() : x(0), y(0), z(0), w(0) {};
-    Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {};
+    Vector4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {};
 
     // utils functions
     void        set(float x, float y, float z, float w);
@@ -234,8 +234,9 @@ inline float& Vector2::operator[](int index) {
     return (&x)[index];
 }
 
-inline void Vector2::set(float x, float y) {
-    this->x = x; this->y = y;
+inline void Vector2::set(float _x, float _y) {
+    x = _x; 
+    y = _y;
 }
 
 inline float Vector2::length() const {
@@ -353,8 +354,10 @@ inline float& Vector3::operator[](int index) {
     return (&x)[index];
 }
 
-inline void Vector3::set(float x, float y, float z) {
-    this->x = x; this->y = y; this->z = z;
+inline void Vector3::set(float _x, float _y, float _z) {
+    x = _x; 
+    y = _y; 
+    z = _z;
 }
 
 inline float Vector3::length() const {
@@ -478,8 +481,11 @@ inline float& Vector4::operator[](int index) {
     return (&x)[index];
 }
 
-inline void Vector4::set(float x, float y, float z, float w) {
-    this->x = x; this->y = y; this->z = z; this->w = w;
+inline void Vector4::set(float _x, float _y, float _z, float _w) {
+    x = _x; 
+    y = _y; 
+    z = _z; 
+    w = _w;
 }
 
 inline float Vector4::length() const {

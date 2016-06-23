@@ -394,8 +394,13 @@ BaseVRApp::BaseVRApp() :
     m_source_parent_window(0),
     m_source_window(0),
     m_errorshown(false),
-    m_keyboard_handle(0)
+    m_keyboard_handle(0),
+    m_pRenderModels(nullptr)
 {
+    m_rTrackedDevicePose.resize(vr::k_unMaxTrackedDeviceCount);
+    m_rmat4DevicePose.resize(vr::k_unMaxTrackedDeviceCount);
+    m_rDevClassChar.resize(vr::k_unMaxTrackedDeviceCount);
+
     m_keys = std::vector<std::string>{
         "Left", "Up", "Right", "Down", "L", "An.Up",
         "Square", "Triangle", "Circle", "Cross", "R", "An.Left"
@@ -434,10 +439,10 @@ void BaseVRApp::ReadPSPControlSettings(const char *pspControlsIniFileName)
     if (f == nullptr)
         return;
 
-    char txt[256];
+    char txt[256] = { 0 };
     while (!feof(f))
     {
-        memset(&txt[0], 0, 256);
+        memset(txt, 0, 256);
         fgets(txt, 256, f);
 
         bool found = false;
@@ -561,29 +566,26 @@ bool BaseVRApp::GetPSPRect(RECT &rect)
     if (m_source_parent_window == 0)
     {
         m_source_parent_window = FindWindow(GetSourceParentClassName(), GetSourceParentWindowName());
-
-        if (m_source_parent_window)
-            SetWindowPos(m_source_parent_window, 0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
     }
 
     if (m_source_parent_window == 0)
     {
         std::pair<BaseVRApp *, bool> data(this, true);
-        BOOL found = EnumWindows(MyEnumWindowsProc, (LPARAM)&data);
-
-        if (!m_source_parent_window)
-            SetWindowPos(m_source_parent_window, 0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+        EnumWindows(MyEnumWindowsProc, (LPARAM)&data);
     }
     
     if (m_source_parent_window == 0)
         return false;
+
+    if (m_source_parent_window)
+        SetWindowPos(m_source_parent_window, 0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 
     m_source_window = FindWindowEx(m_source_parent_window, 0, GetSourceClassName(), GetSourceWindowName());
 
     if (m_source_window == 0)
     {
         std::pair<BaseVRApp *, bool> data(this, false);
-        BOOL found = EnumChildWindows(m_source_parent_window, MyEnumWindowsProc, (LPARAM)&data);
+        EnumChildWindows(m_source_parent_window, MyEnumWindowsProc, (LPARAM)&data);
 
         if (m_source_window == 0)
             return false;
@@ -633,7 +635,7 @@ bool BaseVRApp::init(HWND hWnd)
 
     m_pHMD->GetRecommendedRenderTargetSize(&m_nRenderWidth, &m_nRenderHeight);
 
-    dprintf("width = %d, height = %d", m_nRenderWidth, m_nRenderHeight);
+    DebugPrint("width = %d, height = %d", m_nRenderWidth, m_nRenderHeight);
 
 
     m_pRenderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
@@ -652,7 +654,7 @@ bool BaseVRApp::init(HWND hWnd)
 
     if (!vr::VRCompositor())
     {
-        dprintf("Compositor initialization failed. See log file for details\n");
+        DebugPrint("Compositor initialization failed. See log file for details\n");
         return false;
     }
 
@@ -695,7 +697,7 @@ bool BaseVRApp::init(HWND hWnd)
     swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-    HRESULT errorCode;
+    HRESULT errorCode = E_FAIL;
     for (unsigned i = 0; i < numDriverTypes; ++i)
     {
         errorCode = D3D11CreateDeviceAndSwapChain(NULL, driverTypes[i], NULL, createDeviceFlags,
@@ -712,7 +714,7 @@ bool BaseVRApp::init(HWND hWnd)
     if (FAILED(errorCode))
     {
         OutputDebugString(_T("FAILED TO CREATE DEVICE AND SWAP CHAIN"));
-        MyDebug(_T("FAILED TO CREATE DEVICE AND SWAP CHAIN"));
+        MyDebugDlg(_T("FAILED TO CREATE DEVICE AND SWAP CHAIN"));
         return false;
     }
 
@@ -739,7 +741,7 @@ bool BaseVRApp::init(HWND hWnd)
     result = m_pDevice->CreateRenderTargetView(pBackBufferTex, &RTVDesc, &m_pRenderTargetView);
     if (FAILED(result))
     {
-        MyDebug(_T("ERROR"));
+        MyDebugDlg(_T("ERROR"));
     }
 
     // CREATE DEPTH STENCIL
@@ -813,10 +815,7 @@ bool BaseVRApp::init(HWND hWnd)
 
     if (FAILED(result))
     {
-        WCHAR buf[100];
-        wsprintf(buf, L"%x", result);
-        MyDebug(buf);
-        MyDebug(L"CreateDepthStencilView failed.");
+        DebugPrint("%x", result);
         return false;
     }
 
@@ -846,8 +845,7 @@ bool BaseVRApp::init(HWND hWnd)
     depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     // Create the state using the device.
-    result = m_pDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
-    if (FAILED(result))
+    if (FAILED(m_pDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState)))
     {
         return false;
     }
@@ -914,10 +912,9 @@ bool BaseVRApp::init(HWND hWnd)
         float sx = (float)rect_width / (float)rect_height;
 
         // Initialize the model object.
-        result = m_Screen->Initialize(m_pDevice, sx);
-        if (!result)
+        if (!m_Screen->Initialize(m_pDevice, sx))
         {
-            MessageBox(hWnd, L"Could not initialize the model object.", L"Error", MB_OK);
+            MyDebugDlg(L"Could not initialize the model object.");
             return false;
         }
     }
@@ -930,10 +927,9 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Initialize the color shader object.
-    result = m_ColorShader->Initialize(m_pDevice, hWnd);
-    if (!result)
+    if (!m_ColorShader->Initialize(m_pDevice, hWnd))
     {
-        MessageBox(hWnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+        MyDebugDlg(L"Could not initialize the color shader object.");
         return false;
     }
 
@@ -946,8 +942,7 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Initialize the render to texture object.
-    result = m_RenderTextureLeft->Initialize(m_pDevice, m_nRenderWidth, m_nRenderHeight);
-    if (!result)
+    if (!m_RenderTextureLeft->Initialize(m_pDevice, m_nRenderWidth, m_nRenderHeight))
     {
         return false;
     }
@@ -959,8 +954,7 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Initialize the render to texture object.
-    result = m_RenderTextureRight->Initialize(m_pDevice, m_nRenderWidth, m_nRenderHeight);
-    if (!result)
+    if (!m_RenderTextureRight->Initialize(m_pDevice, m_nRenderWidth, m_nRenderHeight))
     {
         return false;
     }
@@ -973,10 +967,9 @@ bool BaseVRApp::init(HWND hWnd)
     }
 
     // Initialize the debug window object.
-    result = m_DebugWindowLeft->Initialize(m_pDevice, VRCLIENTWIDTH, VRCLIENTHEIGHT, VRCLIENTWIDTH / 2, VRCLIENTHEIGHT);
-    if (!result)
+    if (!m_DebugWindowLeft->Initialize(m_pDevice, VRCLIENTWIDTH, VRCLIENTHEIGHT, VRCLIENTWIDTH / 2, VRCLIENTHEIGHT))
     {
-        MessageBox(hWnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+        MyDebugDlg(L"Could not initialize the debug window object.");
         return false;
     }
 
@@ -986,7 +979,11 @@ bool BaseVRApp::init(HWND hWnd)
         return false;
     }
     // Initialize the debug window object.
-    result = m_DebugWindowRight->Initialize(m_pDevice, VRCLIENTWIDTH, VRCLIENTHEIGHT, VRCLIENTWIDTH / 2, VRCLIENTHEIGHT);
+    if (!m_DebugWindowRight->Initialize(m_pDevice, VRCLIENTWIDTH, VRCLIENTHEIGHT, VRCLIENTWIDTH / 2, VRCLIENTHEIGHT))
+    {
+        MyDebugDlg(L"Could not initialize the debug window object.");
+        return false;
+    }
 
 
     // Create an orthographic projection matrix for 2D rendering.
@@ -995,7 +992,7 @@ bool BaseVRApp::init(HWND hWnd)
     m_orthoMatrix.set((const float*)&mo.r);
 
     if ( NeedScreen())
-        m_Screen->SetTexture(m_source_texture.get());
+        m_Screen->SetTexture(m_source_texture);
 
     m_fScale = 0.3f;
     m_fScaleSpacing = 4.0f;
@@ -1007,7 +1004,7 @@ bool BaseVRApp::init(HWND hWnd)
 
     if (!vr::VRCompositor())
     {
-        printf("Compositor initialization failed. See log file for details\n");
+        DebugPrint("Compositor initialization failed. See log file for details\n");
         return false;
     }
 
@@ -1019,21 +1016,19 @@ bool BaseVRApp::init(HWND hWnd)
 void BaseVRApp::TurnZBufferOn()
 {
     m_pImmediateContext->OMSetDepthStencilState(m_pDSState, 1);
-    return;
 }
 
 
 void BaseVRApp::TurnZBufferOff()
 {
     m_pImmediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
-    return;
 }
 
 
 
 bool BaseVRApp::RenderScene(vr::Hmd_Eye nEye)
 {
-    bool result;
+    bool result = false;
     D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix, orthoMatrix;
 
 
@@ -1049,7 +1044,6 @@ bool BaseVRApp::RenderScene(vr::Hmd_Eye nEye)
         {
             m_errorshown = true;
             return false;
-            MyDebug(_T("render failed"));
         }
     }
 
@@ -1162,11 +1156,11 @@ void BaseVRApp::SendKey(int action, int key)
     }
     else if (action == WM_KEYUP)
     {
-        ::SendMessage(m_source_parent_window, WM_CHAR, key, (1L << 31));
+        ::SendMessage(m_source_parent_window, WM_CHAR, key, (1UL << 31));
     }
 }
 
-void BaseVRApp::ProcessButton(int , const vr::VRControllerState_t &)
+void BaseVRApp::ProcessButton(const ControllerID , const vr::VRControllerState_t &)
 {
 }
 
@@ -1174,7 +1168,7 @@ void BaseVRApp::ProcessButton(int , const vr::VRControllerState_t &)
 // this is the function used to render a single frame
 void BaseVRApp::render_frame(void)
 {
-    bool result;
+    bool result = false;
     bool timeout = false;
 
     int controller_id = 0;
@@ -1189,7 +1183,7 @@ void BaseVRApp::render_frame(void)
         vr::VRControllerState_t state;
         if (m_pHMD->GetControllerState(unTrackedDevice, &state))
         {
-            ProcessButton(controller_id, state);
+            ProcessButton(controller_id == 0 ? e_controller_0 : e_controller_1, state);
         }
 
         controller_id++;
@@ -1263,31 +1257,11 @@ void BaseVRApp::render_frame(void)
     vr::Texture_t rightEyeTexture = { m_RenderTextureRight->GetTexture(), vr::API_DirectX, vr::ColorSpace_Auto };
     vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
     if (error1)
-        dprintf("error is %d \n", error1);
+        DebugPrint("error is %d \n", error1);
 
     UpdateHMDMatrixPose();
 
 }
-
-
-
-std::string BaseVRApp::MatrixToString(const Matrix4& matrix)
-{
-    char buf[1000];
-    int start = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            start += sprintf_s(buf + start, ARRAYSIZE(buf) - start, "%.5f, ", matrix[j * 4 + i]);
-        }
-        start += sprintf_s(buf + start, ARRAYSIZE(buf) - start, "\n");
-    }
-
-    string temp(buf);
-    return temp;
-}
-
 
 Matrix4 BaseVRApp::GetHMDMatrixPoseEye(vr::Hmd_Eye nEye)
 {
@@ -1361,7 +1335,7 @@ void BaseVRApp::UpdateHMDMatrixPose()
     if (!m_pHMD)
         return;
 
-    vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+    vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose.data(), vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
     m_iValidPoseCount = 0;
     m_strPoseClasses = "";
@@ -1393,7 +1367,7 @@ void BaseVRApp::UpdateHMDMatrixPose()
     }
     else
     {
-        dprintf("pose not valid\n");
+        DebugPrint("pose not valid\n");
     }
 }
 
@@ -1405,7 +1379,7 @@ void BaseVRApp::clean(void)
     if (m_ColorShader.get())
         m_ColorShader.release();
 
-    // Release the model object.	
+    // Release the model object.    
     if (m_Screen.get())
         m_Screen.release();
 

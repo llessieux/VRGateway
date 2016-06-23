@@ -102,7 +102,6 @@ float Matrix3::getDeterminant()
 ///////////////////////////////////////////////////////////////////////////////
 Matrix3& Matrix3::invert()
 {
-    float determinant, invDeterminant;
     float tmp[9];
 
     tmp[0] = m[4] * m[8] - m[5] * m[7];
@@ -116,14 +115,14 @@ Matrix3& Matrix3::invert()
     tmp[8] = m[0] * m[4] - m[1] * m[3];
 
     // check determinant if it is 0
-    determinant = m[0] * tmp[0] + m[1] * tmp[3] + m[2] * tmp[6];
+    float determinant = m[0] * tmp[0] + m[1] * tmp[3] + m[2] * tmp[6];
     if(fabs(determinant) <= EPSILON)
     {
         return identity(); // cannot inverse, make it idenety matrix
     }
 
     // divide by the determinant
-    invDeterminant = 1.0f / determinant;
+    float invDeterminant = 1.0f / determinant;
     m[0] = invDeterminant * tmp[0];
     m[1] = invDeterminant * tmp[1];
     m[2] = invDeterminant * tmp[2];

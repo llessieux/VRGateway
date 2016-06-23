@@ -3,25 +3,25 @@
 
 void OutputError(HRESULT hr, const char *file, int line)
 {
-    char txt[256];
-    sprintf_s(txt, 256, "Error at %s (%d): %X", file, line, hr);
-    OutputDebugStringA(txt);
+    std::array<char,256> txt;
+    sprintf_s(txt.data(), 256, "Error at %s (%d): %X", file, line, hr);
+    OutputDebugStringA(txt.data());
 }
 
-void dprintf(const char *fmt, ...)
+void DebugPrint(const char *fmt, ...)
 {
     va_list args;
-    char buffer[2048];
+    std::array<char,2048> buffer;
 
     va_start(args, fmt);
-    vsprintf_s(buffer, fmt, args);
+    vsprintf_s(buffer.data(),buffer.size(), fmt, args);
     va_end(args);
 
 
-    OutputDebugStringA(buffer);
+    OutputDebugStringA(buffer.data());
 }
 
-void MyDebug(LPCWSTR msg)
+void MyDebugDlg(LPCWSTR msg)
 {
     MessageBox(NULL, msg, _T(""), 0);
 }
