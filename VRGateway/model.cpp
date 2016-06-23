@@ -535,8 +535,6 @@ void Model::Shutdown()
 
     // Shutdown the vertex and index buffers.
     ShutdownBuffers();
-
-    return;
 }
 
 
@@ -544,8 +542,6 @@ void Model::Render(ID3D11DeviceContext* deviceContext)
 {
     // Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
     RenderBuffers(deviceContext);
-
-    return;
 }
 
 
@@ -715,8 +711,6 @@ void Model::ShutdownBuffers()
     {
         m_vertexBuffer.Release();
     }
-
-    return;
 }
 
 
@@ -734,8 +728,6 @@ void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
     // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
     deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    return;
 }
 
 void Model::ReleaseTexture()
@@ -746,7 +738,5 @@ void Model::ReleaseTexture()
         m_Texture->Shutdown();
         m_Texture.reset();
     }
-
-    return;
 }
 

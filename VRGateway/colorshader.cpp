@@ -43,19 +43,14 @@ void ColorShader::Shutdown()
 {
     // Shutdown the vertex and pixel shaders as well as the related objects.
     ShutdownShader();
-
-    return;
 }
 
 
 bool ColorShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
                               D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
-    bool result;
-
-
     // Set the shader parameters that it will use for rendering.
-    result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+    bool result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
     if(!result)
     {
         return false;
@@ -236,8 +231,6 @@ void ColorShader::ShutdownShader()
         m_vertexShader->Release();
         m_vertexShader = 0;
     }
-
-    return;
 }
 
 void ColorShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
@@ -261,8 +254,6 @@ void ColorShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, 
 
     // Pop a message up on the screen to notify the user to check the text file for compile errors.
     MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
-
-    return;
 }
 
 
@@ -321,6 +312,4 @@ void ColorShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCoun
 
     // Render the triangle.
     deviceContext->DrawIndexed(indexCount, 0, 0);
-
-    return;
 }

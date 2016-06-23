@@ -51,8 +51,6 @@ void DebugWindow::Shutdown()
 {
     // Shutdown the vertex and index buffers.
     ShutdownBuffers();
-
-    return;
 }
 
 

@@ -91,8 +91,6 @@ void RenderTexture::Shutdown()
         m_renderTargetTexture->Release();
         m_renderTargetTexture = 0;
     }
-
-    return;
 }
 
 
@@ -100,30 +98,20 @@ void RenderTexture::SetRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11De
 {
     // Bind the render target view and depth stencil buffer to the output render pipeline.
     deviceContext->OMSetRenderTargets(1, &m_renderTargetView, depthStencilView);
-    
-    return;
 }
 
 
 void RenderTexture::ClearRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, 
                                            float red, float green, float blue, float alpha)
 {
-    float color[4];
-
-
     // Setup the color to clear the buffer to.
-    color[0] = red;
-    color[1] = green;
-    color[2] = blue;
-    color[3] = alpha;
+    float color[4] = { red, green, blue, alpha };
 
     // Clear the back buffer.
     deviceContext->ClearRenderTargetView(m_renderTargetView, color);
     
     // Clear the depth buffer.
     deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    return;
 }
 
 
