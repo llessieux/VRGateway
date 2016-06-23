@@ -16,6 +16,10 @@ With the stereo option it will show a side by side 3D Movie in 3D in VR :)
 Inspired from 
 https://github.com/JamesBear/directx11_hellovr
 
+Requires Visual Studio 2015 Community Edition.
+
+The project requires the CPPCoreGuidelines NuGet package.
+
 And using the Windows Desktop Duplication API.
 Requires Windows 8.1 x64 min.
 64 bit release only compiling.
