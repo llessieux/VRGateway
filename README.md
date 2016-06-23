@@ -32,3 +32,7 @@ Requires Custom PPSSPP Emulator and "Taiko no Tatsujin" Game for the Taiko hack.
 	Update the TAIKOVR.INI to set the path to the installed PPSSPP folder. (Used to read key config).
 	
 Requires VLC for the VLC Hack.
+
+Taiko 3D Model source:
+http://archive3d.net/?a=download&id=71919018
+Split into parts to support my poorly coded obj format import code and renamed one texture.
