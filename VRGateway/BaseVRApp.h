@@ -19,14 +19,13 @@ public:
     virtual ~BaseVRApp();
 
     bool init(HWND hWnd);
-    void ReadPSPControlSettings(const char *pspControlsIniFileName);
 
     void render_frame(void);
 
-    virtual const wchar_t *GetSourceParentClassName() const;
-    virtual const wchar_t *GetSourceParentWindowName() const;
-    virtual const wchar_t *GetSourceClassName() const;
-    virtual const wchar_t *GetSourceWindowName() const;
+    virtual const wchar_t *GetSourceParentClassName() const = 0;
+    virtual const wchar_t *GetSourceParentWindowName() const = 0;
+    virtual const wchar_t *GetSourceClassName() const = 0;
+    virtual const wchar_t *GetSourceWindowName() const = 0;
 
     void SetSourceParentHWnd(HWND hwnd);
     void SetSourceHWnd(HWND hwnd);
@@ -42,7 +41,7 @@ protected:
 
     virtual void ProcessButton(const ControllerID device, const vr::VRControllerState_t &state);
     virtual bool NeedScreen(); 
-
+    virtual void ConfigureScreen();
 
     typedef struct _FRAME_DATA
     {
@@ -55,7 +54,7 @@ protected:
 
 
     void clean();
-    bool GetPSPRect(RECT &rect);
+    bool GetTargetRect(RECT &rect);
     void SetupCameras();
     void TurnZBufferOn();
     void TurnZBufferOff();
@@ -137,8 +136,6 @@ protected:
     HANDLE m_keyboard_handle;
 
     std::shared_ptr<Texture> m_source_texture;
-    std::vector<std::string> m_keys;
-    std::map<std::string, int> m_button_to_key_map;
 
     float m_background_colors[3];
 };

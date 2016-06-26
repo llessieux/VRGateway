@@ -1,51 +1,30 @@
 #pragma once
-#include "BaseVRApp.h"
+#include "PSPVRApp.h"
+#include "Drum.h"
+#include "DrumStick.h"
+
+
 class TaikoVRApp :
-    public BaseVRApp
+    public PSPVRApp
 {
 public:
     TaikoVRApp();
     virtual ~TaikoVRApp();
 
 protected:
-    enum StickHitRegion {
-        e_none,
-        e_inside_left,
-        e_inside_right,
-        e_outside_left,
-        e_outside_right
-    };
-
-    class DrumHitData
-    {
-    public:
-        DrumHitData();
-
-        D3DXVECTOR3 m_center;
-        D3DXVECTOR3 m_normal;
-        float m_drum_max_radius;
-        float m_drum_inside_zone_radius;
-
-        float m_stick_thickness;
-        float m_stick_length;
-        float m_stick_radius;
-
-        StickHitRegion m_stick[2];
-    };
     virtual void HandleController() override;
     virtual bool setupWorld() override;
     virtual bool renderWorld(D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, bool left) override;
-    virtual void ProcessButton(const ControllerID device, const vr::VRControllerState_t &state) override;
+    virtual void ConfigureScreen() override;
 
-    StickHitRegion CheckStickHit(const Vector3 &tip_position, const Vector3 &stick_origin);
-    bool linePlaneIntersection(Vector3 &contact, const Vector3 &pt1, const Vector3 &pt2, const Vector3 &plane_normal, const Vector3 &plane_coord);
-
-    std::unique_ptr<Model> m_drum_stick;
-    std::vector<Model *> m_objects;
-
+    std::unique_ptr<Drum> m_drum;
     std::unique_ptr<Model> m_cube;
-    DrumHitData m_drumHitData;
+    std::unique_ptr<Model> m_drum_stick;
+    DrumStick m_left_stick;
+    DrumStick m_right_stick;
 
+    Drum::StickHitRegion m_stick[2];
+    
     bool m_enable_logging;
 };
 

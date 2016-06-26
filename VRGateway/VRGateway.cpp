@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "VRGateway.h"
 #include "taikoVRApp.h"
+#include "PataponVRApp.h"
 #include "VLCVRApp.h"
 
 #define MAX_LOADSTRING 100
@@ -11,6 +12,7 @@ WCHAR szTitle[MAX_LOADSTRING];
 WCHAR szWindowClass[MAX_LOADSTRING];            
 
 std::unique_ptr<TaikoVRApp> gtaikoVRApp;
+std::unique_ptr<PataponVRApp> gpataponVRApp;
 std::unique_ptr<VLCVRApp> gVLCVRApp;
 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -67,6 +69,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             // Otherwise do the frame processing.
             if (gtaikoVRApp.get())
                 gtaikoVRApp->render_frame();
+            if (gpataponVRApp.get())
+                gpataponVRApp->render_frame();
             if (gVLCVRApp.get())
                 gVLCVRApp->render_frame();
         }
@@ -75,6 +79,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (gtaikoVRApp.get())
         gtaikoVRApp.release();
+    if (gpataponVRApp.get())
+        gpataponVRApp.release();
     if (gVLCVRApp.get())
         gVLCVRApp.release();
 
@@ -133,6 +139,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, LPWSTR cmdLine)
            separator.clear();
        std::string iniPath = ppssppPath + separator + "memstick\\PSP\\SYSTEM\\controls.ini";
        gtaikoVRApp->ReadPSPControlSettings(iniPath.c_str());
+   }
+   else if (wcsstr(cmdLine, L"-psp_patapon") != nullptr)
+   {
+       gpataponVRApp.reset(new PataponVRApp());
+       if (!gpataponVRApp->init(hWnd))
+       {
+           exit(0);
+       }
+       char txt[256];
+       GetPrivateProfileStringA("PPSSPP", "PATH", "", txt, 256, ".\\TaikoVR.INI");
+       std::string ppssppPath(txt);
+       std::string separator("\\");
+       if (ppssppPath.back() == '\\')
+           separator.clear();
+       std::string iniPath = ppssppPath + separator + "memstick\\PSP\\SYSTEM\\controls.ini";
+       gpataponVRApp->ReadPSPControlSettings(iniPath.c_str());
    }
    else if (wcsstr(cmdLine, L"-vlc_vr") != nullptr)
    {

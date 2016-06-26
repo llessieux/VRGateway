@@ -81,6 +81,18 @@
     <ClInclude Include="debugwindow.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="Drum.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DrumStick.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PSPVRApp.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PataponVRApp.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -129,6 +141,18 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="Screen.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Drum.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="DrumStick.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="PSPVRApp.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="PataponVRApp.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

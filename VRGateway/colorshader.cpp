@@ -166,7 +166,7 @@ bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFil
     //MessageBox(hwnd, L"Are you OK?", L"Are you OK?", MB_OK);
 
     // Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-    D3D11_BUFFER_DESC matrixBufferDesc = { sizeof(MatrixBufferType) , D3D11_USAGE_DYNAMIC , D3D11_BIND_CONSTANT_BUFFER , 0, 0};
+    D3D11_BUFFER_DESC matrixBufferDesc = { sizeof(MatrixBufferType) , D3D11_USAGE_DYNAMIC , D3D11_BIND_CONSTANT_BUFFER , D3D11_CPU_ACCESS_WRITE, 0, 0};
 
     // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
     result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);

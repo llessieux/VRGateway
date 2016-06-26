@@ -157,6 +157,10 @@
     <ClInclude Include="colorshader.h" />
     <ClInclude Include="debugwindow.h" />
     <ClInclude Include="DesktopGrabber.h" />
+    <ClInclude Include="Drum.h" />
+    <ClInclude Include="DrumStick.h" />
+    <ClInclude Include="PataponVRApp.h" />
+    <ClInclude Include="PSPVRApp.h" />
     <ClInclude Include="VRGateway.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="Matrices.h" />
@@ -191,6 +195,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DesktopGrabber.cpp" />
+    <ClCompile Include="Drum.cpp" />
+    <ClCompile Include="DrumStick.cpp" />
+    <ClCompile Include="PataponVRApp.cpp" />
+    <ClCompile Include="PSPVRApp.cpp" />
     <ClCompile Include="VRGateway.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
