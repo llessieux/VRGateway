@@ -3,8 +3,12 @@
 A simple framework for displaying various applications in HTC Vive using the OpenVR framework.
 
 Test applications:
-Taiko VR (-taiko_vr on the command line). Expects a custom version of the PPSSPP emulator running Taiko no Tatsujin.
+Taiko VR (-psp_taiko on the command line). Expects a custom version of the PPSSPP emulator running Taiko no Tatsujin.
 Will display the game on a virtual screen and display a drum with sticks replacing the PSP controls.
+
+PSP Patapon game: (-psp_patapon on the command line)
+Expects a custom version of the PPSSPP emulator running Patapon game (any of the series should work).
+Will display the game on a virtual screen and display 4 drums with sticks replacing the PSP controls.
 
 VLC VR: (-vlc_vr with optional -vlc_stereo_vr option)
 Display the screen of VLC in VR.
