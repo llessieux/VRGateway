@@ -110,8 +110,8 @@ bool VLCVRApp::setupWorld()
     float input_scale = m_stereo_input ? 0.5f : 1.0f;
 
     m_left_screen.reset(new Screen);
-
-    m_left_screen->SetScreenSize(2.0f);
+    float screen_size = 2.0f;
+    m_left_screen->SetScreenSize(screen_size);
     m_left_screen->SetScreenPosition(screen_position);
     // Initialize the model object.
     bool result = m_left_screen->Initialize(m_pDevice, sx, input_scale,0.0f);
@@ -125,7 +125,7 @@ bool VLCVRApp::setupWorld()
     if (m_stereo_input)
     {
         m_right_screen.reset(new Screen);
-        m_right_screen->SetScreenSize(6.0f);
+        m_right_screen->SetScreenSize(screen_size);
         m_right_screen->SetScreenPosition(screen_position);
         // Initialize the model object.
         result = m_right_screen->Initialize(m_pDevice, sx, 0.5f, 0.5f);

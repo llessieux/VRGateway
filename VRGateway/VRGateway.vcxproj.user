@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>G:\work\VRGateway\VRGateway\x64\Release</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-apsp_patapon -psp_taiko -avlc_vr</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-apsp_patapon -apsp_taiko -vlc_vr -vlc_stereo_vr</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>-psp_taiko</LocalDebuggerCommandArguments>
